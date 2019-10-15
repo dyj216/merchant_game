@@ -1,14 +1,20 @@
 from django.http import HttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import login_required
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
 from django.views.generic import RedirectView
 
-from .models import Player, City
+from .models import Player, City, CityStock
 
 
 def index(request):
     return render(request, 'merchant_game/index.html')
+
+
+def city_stock_detail(request, city):
+    stock_prices = CityStock.objects.filter(city=city, round=1)[0]
+    return render(request, 'merchant_game/city_stock_detail.html', context={'city_stock': stock_prices})
 
 
 class CitiesView(LoginRequiredMixin, generic.ListView):

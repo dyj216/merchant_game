@@ -31,3 +31,20 @@ class City(models.Model):
     # item_4_name = models.OneToOneField(Item, on_delete=models.CASCADE)
     # item_5_name = models.OneToOneField(Item, on_delete=models.CASCADE)
     # item_6_name = models.OneToOneField(Item, on_delete=models.CASCADE)
+
+
+class CityStock(models.Model):
+    city = models.ForeignKey(City, on_delete=models.CASCADE)
+    round = models.IntegerField()
+    item_1_buy_price = models.IntegerField(blank=True, null=True,)
+    item_1_sell_price = models.IntegerField(blank=True, null=True,)
+    item_2_buy_price = models.IntegerField(blank=True, null=True,)
+    item_2_sell_price = models.IntegerField(blank=True, null=True,)
+    item_3_buy_price = models.IntegerField(blank=True, null=True,)
+    item_3_sell_price = models.IntegerField(blank=True, null=True,)
+    item_4_buy_price = models.IntegerField(blank=True, null=True,)
+    item_4_sell_price = models.IntegerField(blank=True, null=True,)
+    item_5_buy_price = models.IntegerField(blank=True, null=True,)
+    item_5_sell_price = models.IntegerField(blank=True, null=True,)
+    item_6_buy_price = models.IntegerField(blank=True, null=True,)
+    item_6_sell_price = models.IntegerField(blank=True, null=True,)

@@ -8,7 +8,7 @@
     {% if cities %}
         <ul>
         {% for city in cities %}
-            <li>{{ city.name }}</li>
+            <li><a href="{% url 'merchant_game:city-stock' city.name %}">{{ city.name }}</a></li>
         {% endfor %}
         </ul>
     {% else %}

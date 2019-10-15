@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ city_stock.city.name }} árfolyamok</title>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th colspan="2">Juhsajt</th>
+                <th colspan="2">Borostyán</th>
+                <th colspan="2">Krówka</th>
+                <th colspan="2">Kősó</th>
+                <th colspan="2">Mézeskalács</th>
+                <th colspan="2">Zubrowka</th>
+            </tr>
+            <tr>
+                <th>Eladás</th>
+                <th>Vétel</th>
+                <th>Eladás</th>
+                <th>Vétel</th>
+                <th>Eladás</th>
+                <th>Vétel</th>
+                <th>Eladás</th>
+                <th>Vétel</th>
+                <th>Eladás</th>
+                <th>Vétel</th>
+                <th>Eladás</th>
+                <th>Vétel</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>{{ city_stock.item_1_buy_price }}</th>
+                <th>{{ city_stock.item_1_sell_price }}</th>
+                <th>{{ city_stock.item_2_buy_price }}</th>
+                <th>{{ city_stock.item_2_sell_price }}</th>
+                <th>{{ city_stock.item_3_buy_price }}</th>
+                <th>{{ city_stock.item_3_sell_price }}</th>
+                <th>{{ city_stock.item_4_buy_price }}</th>
+                <th>{{ city_stock.item_4_sell_price }}</th>
+                <th>{{ city_stock.item_5_buy_price }}</th>
+                <th>{{ city_stock.item_5_sell_price }}</th>
+                <th>{{ city_stock.item_6_buy_price }}</th>
+                <th>{{ city_stock.item_6_sell_price }}</th>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
