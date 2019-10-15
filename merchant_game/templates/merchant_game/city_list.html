@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Városok</title>
+</head>
+<body>
+    {% if cities %}
+        <ul>
+        {% for city in cities %}
+            <li>{{ city.name }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No cities are available.</p>
+    {% endif %}
+</body>
+</html>
