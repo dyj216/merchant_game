@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ player.code }} játékos</title>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>Kód</th>
+                <th>Pénz</th>
+                <th>Juhsajt</th>
+                <th>Borostyán</th>
+                <th>Krówka</th>
+                <th>Kősó</th>
+                <th>Mézeskalács</th>
+                <th>Zubrowka</th>
+                <th>Adósság</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>{{ player.code }}</th>
+                <th>{{ player.money }}</th>
+                <th>{{ player.item_1_amount }}</th>
+                <th>{{ player.item_2_amount }}</th>
+                <th>{{ player.item_3_amount }}</th>
+                <th>{{ player.item_4_amount }}</th>
+                <th>{{ player.item_5_amount }}</th>
+                <th>{{ player.item_6_amount }}</th>
+                <th>{{ player.debt }}</th>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
