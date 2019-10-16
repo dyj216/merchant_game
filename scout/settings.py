@@ -27,7 +27,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '#k$kgkzff)cc0d!@pn5^2jf*ak+zqj
 # DEBUG = True
 DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['frozen-waters-24852.herokuapp.com', '127.0.0.1', 'localhost']
 
 
 # Application definition
