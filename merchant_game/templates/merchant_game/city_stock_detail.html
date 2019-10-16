@@ -3,6 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ city_stock.city.name }} árfolyamok</title>
+    <style>
+        body{
+            margin:40px auto;
+            max-width:1400px;
+            line-height:1.6;
+            font-size:18px;
+            color:#444;
+            padding:0 10px
+        }
+        h1,h2,h3{line-height:1.2}
+        table, th, td, tr, thead, tbody{
+            border: 1px solid black;
+            color: black;
+        }
+        th, td{
+            padding: 5px;
+            min-width: 100px;
+        }
+        tr td:nth-child(even){
+            background: lightgrey;
+        }
+        @media
+        only screen and (max-width: 760px),
+        (min-device-width: 768px) and (max-device-width: 1024px)  {
+
+            /* Force table to not be like tables anymore */
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            /* Hide table headers (but not display: none;, for accessibility) */
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            tr { border: 1px solid #ccc; }
+
+            td {
+                /* Behave  like a "row" */
+                border: none;
+                border-bottom: 1px solid #eee;
+                position: relative;
+                padding-left: 50%;
+            }
+
+            td:before {
+                /* Now like a table header */
+                position: absolute;
+                /* Top/left values mimic padding */
+                top: 6px;
+                left: 6px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+            }
+
+            /*
+            Label the data
+            */
+            td:nth-of-type(1):before { content: "Juhsajt eladás"; }
+            td:nth-of-type(2):before { content: "Juhsajt vétel"; }
+            td:nth-of-type(3):before { content: "Borostyán eladás"; }
+            td:nth-of-type(4):before { content: "Borostyán eladás"; }
+            td:nth-of-type(5):before { content: "Krówka eladás"; }
+            td:nth-of-type(6):before { content: "Krówka vétel"; }
+            td:nth-of-type(7):before { content: "Kősó eladás"; }
+            td:nth-of-type(8):before { content: "Kősó vétel"; }
+            td:nth-of-type(9):before { content: "Mézeskalács eladás"; }
+            td:nth-of-type(10):before { content: "Mézeskalács vétel"; }
+            td:nth-of-type(11):before { content: "Zubrowka eladás"; }
+            td:nth-of-type(12):before { content: "Zubrowka vétel"; }
+        }
+    </style>
 </head>
 <body>
     <table>
@@ -16,34 +91,34 @@
                 <th colspan="2">Zubrowka</th>
             </tr>
             <tr>
-                <th>Eladás</th>
-                <th>Vétel</th>
-                <th>Eladás</th>
-                <th>Vétel</th>
-                <th>Eladás</th>
-                <th>Vétel</th>
-                <th>Eladás</th>
-                <th>Vétel</th>
-                <th>Eladás</th>
-                <th>Vétel</th>
-                <th>Eladás</th>
-                <th>Vétel</th>
+                <td>Eladás</td>
+                <td>Vétel</td>
+                <td>Eladás</td>
+                <td>Vétel</td>
+                <td>Eladás</td>
+                <td>Vétel</td>
+                <td>Eladás</td>
+                <td>Vétel</td>
+                <td>Eladás</td>
+                <td>Vétel</td>
+                <td>Eladás</td>
+                <td>Vétel</td>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <th>{{ city_stock.item_1_buy_price }}</th>
-                <th>{{ city_stock.item_1_sell_price }}</th>
-                <th>{{ city_stock.item_2_buy_price }}</th>
-                <th>{{ city_stock.item_2_sell_price }}</th>
-                <th>{{ city_stock.item_3_buy_price }}</th>
-                <th>{{ city_stock.item_3_sell_price }}</th>
-                <th>{{ city_stock.item_4_buy_price }}</th>
-                <th>{{ city_stock.item_4_sell_price }}</th>
-                <th>{{ city_stock.item_5_buy_price }}</th>
-                <th>{{ city_stock.item_5_sell_price }}</th>
-                <th>{{ city_stock.item_6_buy_price }}</th>
-                <th>{{ city_stock.item_6_sell_price }}</th>
+                <td>{% if city_stock.item_1_buy_price %}{{ city_stock.item_1_buy_price }}{% endif %}</td>
+                <td>{% if city_stock.item_1_sell_price %}{{ city_stock.item_1_sell_price }}{% endif %}</td>
+                <td>{% if city_stock.item_2_buy_price %}{{ city_stock.item_2_buy_price }}{% endif %}</td>
+                <td>{% if city_stock.item_2_sell_price %}{{ city_stock.item_2_sell_price }}{% endif %}</td>
+                <td>{% if city_stock.item_3_buy_price %}{{ city_stock.item_3_buy_price }}{% endif %}</td>
+                <td>{% if city_stock.item_3_sell_price %}{{ city_stock.item_3_sell_price }}{% endif %}</td>
+                <td>{% if city_stock.item_4_buy_price %}{{ city_stock.item_4_buy_price }}{% endif %}</td>
+                <td>{% if city_stock.item_4_sell_price %}{{ city_stock.item_4_sell_price }}{% endif %}</td>
+                <td>{% if city_stock.item_5_buy_price %}{{ city_stock.item_5_buy_price }}{% endif %}</td>
+                <td>{% if city_stock.item_5_sell_price %}{{ city_stock.item_5_sell_price }}{% endif %}</td>
+                <td>{% if city_stock.item_6_buy_price %}{{ city_stock.item_6_buy_price }}{% endif %}</td>
+                <td>{% if city_stock.item_6_sell_price %}{{ city_stock.item_6_sell_price }}{% endif %}</td>
             </tr>
         </tbody>
     </table>
