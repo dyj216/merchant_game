@@ -4,8 +4,37 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
 from django.views.generic import RedirectView
+from django.utils import timezone
 
-from .models import Player, City, CityStock
+from .models import Player, City, CityStock, GameData
+
+
+_ROUND_DURATION = 15 * 60  # in seconds
+
+
+def _get_current_stock_prices(city):
+    elapsed_seconds = _get_elapsed_seconds()
+    current_round = _get_current_round(elapsed_seconds)
+    return CityStock.objects.filter(city=city, round=current_round)[0]
+
+
+def _get_elapsed_seconds():
+    now = timezone.now()
+    game_start_time = GameData.objects.latest('starting_time').starting_time
+    elapsed_time = now - game_start_time
+    return int(elapsed_time.total_seconds())
+
+
+def _get_current_round(elapsed_seconds):
+    return int(elapsed_seconds/_ROUND_DURATION) + 1 if elapsed_seconds <= 6 * _ROUND_DURATION else 6
+
+
+def _get_round_data():
+    elapsed_seconds = _get_elapsed_seconds()
+    current_round = _get_current_round(elapsed_seconds)
+    seconds_remaining = _ROUND_DURATION - (elapsed_seconds % _ROUND_DURATION) if int(
+        elapsed_seconds / _ROUND_DURATION) < 6 else 0
+    return {"round": current_round, "time_remaining": seconds_remaining}
 
 
 def index(request):
@@ -13,12 +42,12 @@ def index(request):
 
 
 def city_stock_detail(request, city):
-    stock_prices = CityStock.objects.filter(city=city, round=1)[0]
+    stock_prices = _get_current_stock_prices(city)
     return render(request, 'merchant_game/city_stock_detail.html', context={'city_stock': stock_prices})
 
 
 def trading(request, city):
-    stock_prices = CityStock.objects.filter(city=city, round=1)[0]
+    stock_prices = _get_current_stock_prices(city)
     return render(request, 'merchant_game/trading.html', context={
         'city': city,
         'city_stock': stock_prices,

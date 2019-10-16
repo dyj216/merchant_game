@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Item(models.Model):
@@ -48,3 +49,7 @@ class CityStock(models.Model):
     item_5_sell_price = models.IntegerField(blank=True, null=True,)
     item_6_buy_price = models.IntegerField(blank=True, null=True,)
     item_6_sell_price = models.IntegerField(blank=True, null=True,)
+
+
+class GameData(models.Model):
+    starting_time = models.DateTimeField(default=timezone.now())
