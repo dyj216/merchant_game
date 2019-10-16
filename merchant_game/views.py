@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
@@ -41,6 +42,7 @@ def index(request):
     return render(request, 'merchant_game/index.html')
 
 
+@login_required(login_url='/admin/login/')
 def city_stock_detail(request, city):
     stock_prices = _get_current_stock_prices(city)
     return render(request, 'merchant_game/city_stock_detail.html', context={
@@ -49,6 +51,7 @@ def city_stock_detail(request, city):
     })
 
 
+@login_required(login_url='/admin/login/')
 def trading(request, city):
     stock_prices = _get_current_stock_prices(city)
     return render(request, 'merchant_game/trading.html', context={
@@ -58,6 +61,7 @@ def trading(request, city):
     })
 
 
+@login_required(login_url='/admin/login/')
 def trade(request, city):
     player = get_object_or_404(Player, code=request.POST['player'].upper())
     city_stock = _get_current_stock_prices(city)
@@ -114,6 +118,7 @@ def trade(request, city):
     return HttpResponseRedirect(reverse('merchant_game:city-trading', args=(city, )))
 
 
+@login_required(login_url='/admin/login/')
 def robbing(request, city):
     return render(request, 'merchant_game/robbing.html', context={
         'city': city,
@@ -121,6 +126,7 @@ def robbing(request, city):
     })
 
 
+@login_required(login_url='/admin/login/')
 def rob(request, city):
     # robber = Player.objects.filter(name=request.POST['robber'])[0]
     robber = get_object_or_404(Player, code=request.POST['robber'].upper())
