@@ -43,7 +43,10 @@ def index(request):
 
 def city_stock_detail(request, city):
     stock_prices = _get_current_stock_prices(city)
-    return render(request, 'merchant_game/city_stock_detail.html', context={'city_stock': stock_prices})
+    return render(request, 'merchant_game/city_stock_detail.html', context={
+        'city_stock': stock_prices,
+        'round_data': _get_round_data(),
+    })
 
 
 def trading(request, city):
@@ -51,13 +54,13 @@ def trading(request, city):
     return render(request, 'merchant_game/trading.html', context={
         'city': city,
         'city_stock': stock_prices,
+        'round_data': _get_round_data(),
     })
 
 
 def trade(request, city):
-    stock_prices = CityStock.objects.filter(city=city, round=1)[0]
     player = get_object_or_404(Player, code=request.POST['player'].upper())
-    city_stock = CityStock.objects.filter(city=city, round=1)[0]
+    city_stock = _get_current_stock_prices(city)
     exchange = request.POST['exchange']
     valuable = request.POST['valuable']
     item_amount = int(request.POST['item_amount'])
@@ -90,8 +93,9 @@ def trade(request, city):
         if total_price > player.money:
             return render(request, 'merchant_game/trading.html', context={
                 'city': city,
-                'city_stock': stock_prices,
+                'city_stock': city_stock,
                 'error_message': 'Nincs ennyi pénzed!',
+                'round_data': _get_round_data(),
             })
         player.money -= total_price
         setattr(player, '{}_amount'.format(valuable), player_item_mapping[valuable] + item_amount)
@@ -99,8 +103,9 @@ def trade(request, city):
         if item_amount > player_item_mapping[valuable]:
             return render(request, 'merchant_game/trading.html', context={
                 'city': city,
-                'city_stock': stock_prices,
+                'city_stock': city_stock,
                 'error_message': 'Nincs ennyi terméked!',
+                'round_data': _get_round_data(),
             })
         total_price = sell_prices[valuable] * item_amount
         player.money += total_price
@@ -110,7 +115,10 @@ def trade(request, city):
 
 
 def robbing(request, city):
-    return render(request, 'merchant_game/robbing.html', context={'city': city})
+    return render(request, 'merchant_game/robbing.html', context={
+        'city': city,
+        'round_data': _get_round_data(),
+    })
 
 
 def rob(request, city):
