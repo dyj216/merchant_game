@@ -1,0 +1,1 @@
+web: gunicorn scout.wsgi --log-file -
