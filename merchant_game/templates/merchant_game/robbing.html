@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rablás</title>
+    <style>
+        body {
+            margin: 40px auto;
+            max-width: 1100px;
+            line-height: 1.6;
+            font-size: 18px;
+            color: #444;
+            padding: 0 10px;
+        }
+
+        form {
+            margin: 20px 0 20px 0;
+        }
+
+        ul.topnav {
+          list-style-type: none;
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          background-color: #4CAF50;
+        }
+
+        ul.topnav li {float: left;}
+
+        ul.topnav li a {
+          display: block;
+          color: white;
+          text-align: center;
+          padding: 14px 16px;
+          text-decoration: none;
+        }
+
+        ul.topnav li a:hover:not(.active) {background-color: #111;}
+
+        @media screen and (max-width: 600px) {
+          ul.topnav li {float: none;}
+        }
+    </style>
+</head>
+<body>
+    <ul class="topnav">
+      <li><a href="{% url 'merchant_game:city-stock' city %}">Árfolyam</a></li>
+      <li><a href="{% url 'merchant_game:city-trading' city %}">Kereskedés</a></li>
+      <li><a href="{% url 'merchant_game:city-robbing' city %}">Rablás</a></li>
+      <li><a href="#contact">Ajándékozás</a></li>
+    </ul>
+    <form action="{% url 'merchant_game:city-rob' city %}" method="POST">
+        {% csrf_token %}
+        <p>
+            <label for="robber">Rabló:</label>
+            <input type="text" id="robber" name="robber"/>
+        </p>
+        <p>
+            <label for="robbed">Kárvallott:</label>
+            <input type="text" id="robbed" name="robbed"/>
+        </p>
+        <p>
+            <label for="valuables">Érték</label>
+            <select name="valuables" id="valuables">
+                <option value="money">Pénz</option>
+                <option value="products">Termékek</option>
+            </select>
+        </p>
+        <p>
+            <input type="hidden" name="city" id="city" value="{{ city }}"/>
+            <input type="submit" value="GO"/>
+        </p>
+    </form>
+</body>
+</html>

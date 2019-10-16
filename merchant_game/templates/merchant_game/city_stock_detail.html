@@ -1,8 +1,9 @@
 <!DOCTYPE html>
+{% with city=city_stock.city.name %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ city_stock.city.name }} árfolyamok</title>
+    <title>{{ city }} árfolyamok</title>
     <style>
         body{
             margin:40px auto;
@@ -11,6 +12,9 @@
             font-size:18px;
             color:#444;
             padding:0 10px
+        }
+        form {
+            margin: 20px 0 20px 0;
         }
         h1,h2,h3{line-height:1.2}
         table, th, td, tr, thead, tbody{
@@ -77,9 +81,39 @@
             td:nth-of-type(11):before { content: "Zubrowka eladás"; }
             td:nth-of-type(12):before { content: "Zubrowka vétel"; }
         }
+
+        ul.topnav {
+          list-style-type: none;
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          background-color: #4CAF50;
+        }
+
+        ul.topnav li {float: left;}
+
+        ul.topnav li a {
+          display: block;
+          color: white;
+          text-align: center;
+          padding: 14px 16px;
+          text-decoration: none;
+        }
+
+        ul.topnav li a:hover:not(.active) {background-color: #111;}
+
+        @media screen and (max-width: 600px) {
+          ul.topnav li {float: none;}
+        }
     </style>
 </head>
 <body>
+    <ul class="topnav">
+      <li><a href="{% url 'merchant_game:city-stock' city %}">Árfolyam</a></li>
+      <li><a href="{% url 'merchant_game:city-trading' city %}">Kereskedés</a></li>
+      <li><a href="{% url 'merchant_game:city-robbing' city %}">Rablás</a></li>
+      <li><a href="#contact">Ajándékozás</a></li>
+    </ul>
     <table>
         <thead>
             <tr>
@@ -124,3 +158,4 @@
     </table>
 </body>
 </html>
+{% endwith %}
