@@ -119,7 +119,7 @@
         <li><a href="{% url 'merchant_game:city-stock' city %}">Árfolyam</a></li>
         <li><a href="{% url 'merchant_game:city-trading' city %}">Kereskedés</a></li>
         <li><a href="{% url 'merchant_game:city-robbing' city %}">Rablás</a></li>
-        <li><a href="#contact">Ajándékozás</a></li>
+        <li><a href="{% url 'merchant_game:city-bestowing' city %}">Átruházás</a></li>
         <li class="right"><span>{{ round_data.round }}. kör</span></li>
         <li class="right"><span id="countdown">--:--</span></li>
     </ul>
@@ -150,18 +150,18 @@
         </thead>
         <tbody>
             <tr>
-                <td>{% if city_stock.item_1_buy_price %}{{ city_stock.item_1_buy_price }}{% endif %}</td>
-                <td>{% if city_stock.item_1_sell_price %}{{ city_stock.item_1_sell_price }}{% endif %}</td>
-                <td>{% if city_stock.item_2_buy_price %}{{ city_stock.item_2_buy_price }}{% endif %}</td>
-                <td>{% if city_stock.item_2_sell_price %}{{ city_stock.item_2_sell_price }}{% endif %}</td>
-                <td>{% if city_stock.item_3_buy_price %}{{ city_stock.item_3_buy_price }}{% endif %}</td>
-                <td>{% if city_stock.item_3_sell_price %}{{ city_stock.item_3_sell_price }}{% endif %}</td>
-                <td>{% if city_stock.item_4_buy_price %}{{ city_stock.item_4_buy_price }}{% endif %}</td>
-                <td>{% if city_stock.item_4_sell_price %}{{ city_stock.item_4_sell_price }}{% endif %}</td>
-                <td>{% if city_stock.item_5_buy_price %}{{ city_stock.item_5_buy_price }}{% endif %}</td>
-                <td>{% if city_stock.item_5_sell_price %}{{ city_stock.item_5_sell_price }}{% endif %}</td>
-                <td>{% if city_stock.item_6_buy_price %}{{ city_stock.item_6_buy_price }}{% endif %}</td>
-                <td>{% if city_stock.item_6_sell_price %}{{ city_stock.item_6_sell_price }}{% endif %}</td>
+                <td>{{ city_stock.item_1_buy_price|default_if_none:'-' }}</td>
+                <td>{{ city_stock.item_1_sell_price|default_if_none:'-' }}</td>
+                <td>{{ city_stock.item_2_buy_price|default_if_none:'-' }}</td>
+                <td>{{ city_stock.item_2_sell_price|default_if_none:'-' }}</td>
+                <td>{{ city_stock.item_3_buy_price|default_if_none:'-' }}</td>
+                <td>{{ city_stock.item_3_sell_price|default_if_none:'-' }}</td>
+                <td>{{ city_stock.item_4_buy_price|default_if_none:'-' }}</td>
+                <td>{{ city_stock.item_4_sell_price|default_if_none:'-' }}</td>
+                <td>{{ city_stock.item_5_buy_price|default_if_none:'-' }}</td>
+                <td>{{ city_stock.item_5_sell_price|default_if_none:'-' }}</td>
+                <td>{{ city_stock.item_6_buy_price|default_if_none:'-' }}</td>
+                <td>{{ city_stock.item_6_sell_price|default_if_none:'-' }}</td>
             </tr>
         </tbody>
     </table>

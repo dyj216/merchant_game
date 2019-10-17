@@ -54,7 +54,7 @@
         <li><a href="{% url 'merchant_game:city-stock' city %}">Árfolyam</a></li>
         <li><a href="{% url 'merchant_game:city-trading' city %}">Kereskedés</a></li>
         <li><a href="{% url 'merchant_game:city-robbing' city %}">Rablás</a></li>
-        <li><a href="#contact">Ajándékozás</a></li>
+        <li><a href="{% url 'merchant_game:city-bestowing' city %}">Átruházás</a></li>
         <li class="right"><span>{{ round_data.round }}. kör</span></li>
         <li class="right"><span id="countdown">--:--</span></li>
     </ul>
