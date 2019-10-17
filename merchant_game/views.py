@@ -42,6 +42,21 @@ def index(request):
     return render(request, 'merchant_game/index.html')
 
 
+@login_required(login_url='/admin/login')
+def loaning(request):
+    round_data = _get_round_data()
+    loan = 500 + (round_data["round"] - 1) * 100
+    return render(request, 'merchant_game/loaning.html', context={
+        'loan': loan,
+        'round_data': round_data,
+    })
+
+
+@login_required(login_url='/admin/login')
+def lend(request):
+    return HttpResponseRedirect(reverse('merchant_game:loaning'))
+
+
 @login_required(login_url='/admin/login/')
 def city_stock_detail(request, city):
     stock_prices = _get_current_stock_prices(city)

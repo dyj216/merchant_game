@@ -23,6 +23,12 @@ class Player(models.Model):
     item_6_amount = models.BigIntegerField(default=0)
 
 
+class Loan(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    round = models.IntegerField()
+    amount = models.IntegerField()
+
+
 class City(models.Model):
     name = models.CharField(max_length=20, primary_key=True)
     # item_1_name = models.OneToOneField(Item, on_delete=models.CASCADE)
