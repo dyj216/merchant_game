@@ -21,7 +21,6 @@ class Player(models.Model):
     item_4_amount = models.BigIntegerField(default=0)
     item_5_amount = models.BigIntegerField(default=0)
     item_6_amount = models.BigIntegerField(default=0)
-    debt = models.IntegerField(default=0)
 
 
 class City(models.Model):
