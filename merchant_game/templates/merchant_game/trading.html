@@ -95,7 +95,7 @@
         </p>
         <p>
             <input type="hidden" name="city" id="city" value="{{ city }}"/>
-            <input type="submit" value="GO"/>
+            <input type="submit" value="GO"  id="submit" disabled/>
         </p>
     </form>
     <script type="text/javascript">
@@ -103,27 +103,28 @@
         let money_amount = document.getElementById('money_amount');
         let exchange = document.getElementById('exchange');
         let valuable = document.getElementById('valuable');
+        let submit = document.getElementById('submit');
 
         item_amount.oninput = handleChange;
         valuable.oninput = handleChange;
         exchange.oninput = handleChange;
 
         let buy_prices = {
-            "item_1" : {{ city_stock.item_1_buy_price }},
-            "item_2" : {{ city_stock.item_2_buy_price }},
-            "item_3" : {{ city_stock.item_3_buy_price }},
-            "item_4" : {{ city_stock.item_4_buy_price }},
-            "item_5" : {{ city_stock.item_5_buy_price }},
-            "item_6" : {{ city_stock.item_6_buy_price }}
+            "item_1" : {{ city_stock.item_1_buy_price|default_if_none:0 }},
+            "item_2" : {{ city_stock.item_2_buy_price|default_if_none:0 }},
+            "item_3" : {{ city_stock.item_3_buy_price|default_if_none:0 }},
+            "item_4" : {{ city_stock.item_4_buy_price|default_if_none:0 }},
+            "item_5" : {{ city_stock.item_5_buy_price|default_if_none:0 }},
+            "item_6" : {{ city_stock.item_6_buy_price|default_if_none:0 }}
         };
 
         let sell_prices = {
-            "item_1" : {{ city_stock.item_1_sell_price }},
-            "item_2" : {{ city_stock.item_2_sell_price }},
-            "item_3" : {{ city_stock.item_3_sell_price }},
-            "item_4" : {{ city_stock.item_4_sell_price }},
-            "item_5" : {{ city_stock.item_5_sell_price }},
-            "item_6" : {{ city_stock.item_6_sell_price }}
+            "item_1" : {{ city_stock.item_1_sell_price|default_if_none:0 }},
+            "item_2" : {{ city_stock.item_2_sell_price|default_if_none:0 }},
+            "item_3" : {{ city_stock.item_3_sell_price|default_if_none:0 }},
+            "item_4" : {{ city_stock.item_4_sell_price|default_if_none:0 }},
+            "item_5" : {{ city_stock.item_5_sell_price|default_if_none:0 }},
+            "item_6" : {{ city_stock.item_6_sell_price|default_if_none:0 }}
         };
 
         function handleChange(e) {
@@ -132,6 +133,12 @@
             }
             else {
                 money_amount.innerText = item_amount.value * sell_prices[valuable.value];
+            }
+            if (money_amount.innerText === "0") {
+                submit.disabled = true;
+            }
+            else {
+                submit.disabled = false;
             }
         }
         let distance = {{ round_data.time_remaining }};
