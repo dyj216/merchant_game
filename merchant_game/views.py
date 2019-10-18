@@ -97,6 +97,36 @@ def payback(request):
 
 
 @login_required(login_url='/admin/login/')
+def ending(request):
+    return render(request, 'merchant_game/ending.html')
+
+
+ENDING_MAPPING = [
+    16,
+    20,
+    18,
+    14,
+    15,
+    11,
+]
+
+
+@login_required(login_url='/admin/login')
+def end(request):
+    players = Player.objects.all()
+    for player in players:
+        for item_number, item_value in enumerate(ENDING_MAPPING):
+            player.money += item_value * getattr(player, "item_{}_amount".format(item_number+1))
+            setattr(player, "item_{}_amount".format(item_number+1), 0)
+        loans = Loan.objects.filter(player=player)
+        for loan in loans:
+            player.money -= (loan.amount + ((6 - loan.round) * int(loan.amount / 10)))
+            loan.delete()
+        player.save()
+    return HttpResponseRedirect(reverse('merchant_game:players'))
+
+
+@login_required(login_url='/admin/login/')
 def city_stock_detail(request, city):
     stock_prices = _get_current_stock_prices(city)
     return render(request, 'merchant_game/city_stock_detail.html', context={
@@ -253,6 +283,10 @@ class CitiesView(LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         return City.objects.all()
+
+
+def player_searching(request):
+    return render(request, 'merchant_game/player_searching.html')
 
 
 class PlayersView(generic.ListView):

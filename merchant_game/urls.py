@@ -4,13 +4,16 @@ from . import views
 
 
 app_name = 'merchant_game'
+
 urlpatterns = [
     path('', views.index, name='index'),
     path('cities/', views.CitiesView.as_view(), name='cities'),
     path('loaning/', views.loaning, name='loaning'),
     path('lend/', views.lend, name='lend'),
     path('paying-back/', views.paying_back, name='paying-back'),
-    path('payback', views.payback, name='payback'),
+    path('payback/', views.payback, name='payback'),
+    path('ending/', views.ending, name='ending'),
+    path('end/', views.end, name='end'),
     path('bestow/', views.bestow, name='bestow'),
     path('bestowing/', views.bestowing, name='bestowing'),
     path('cities/<str:city>/', views.city_stock_detail, name='city-stock'),
@@ -20,7 +23,8 @@ urlpatterns = [
     path('cities/<str:city>/trade', views.trade, name='city-trade'),
     path('cities/<str:city>/bestowing/', views.bestowing, name='city-bestowing'),
     path('cities/<str:city>/bestow/', views.bestow, name='city-bestow'),
-    path('players/', views.PlayersView.as_view(), name='players'),
-    path('players/<str:pk>/', views.PlayerView.as_view(), name='player'),
+    path('player-searching/', views.player_searching, name='player-searching'),
     path('player-search/', views.PlayerSearchRedirectView.as_view(), name='player-search'),
+    path('players/<str:pk>/', views.PlayerView.as_view(), name='player'),
+    path('players/', views.PlayersView.as_view(), name='players'),
 ]
