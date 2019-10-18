@@ -59,18 +59,13 @@
     {% if error_message %}
         <p><strong>{{ error_message }}</strong></p>
     {% endif %}
-    <form action="{% url 'merchant_game:lend' %}" method="POST">
+    <form action="{% url 'merchant_game:payback' %}" method="POST">
         {% csrf_token %}
+        {% for loan in loans %}
+            <input type="radio" id="{{ loan.pk }}" name="loan_id" value="{{ loan.pk }}"/>
+            <label for="{{ loan.pk }}">{{ loan.player.code }} kölcsöne a(z) {{ loan.round }}. körben: {{ loan.amount }}</label>
+        {% endfor %}
         <p>
-            <label for="player">Játékos:</label>
-            <input type="text" id="player" name="player"/>
-        </p>
-        <p>
-            <label for="loan_amount">Kölcsön mértéke:</label>
-            <span id ="loan_amount">{{ loan }}</span>
-        </p>
-        <p>
-            <input type="hidden" name="city" id="city" value="{{ city }}"/>
             <input type="submit" value="GO"  id="submit"/>
         </p>
     </form>

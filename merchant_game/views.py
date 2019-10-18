@@ -7,7 +7,7 @@ from django.views import generic
 from django.views.generic import RedirectView
 from django.utils import timezone
 
-from .models import Player, City, CityStock, GameData
+from .models import Player, City, CityStock, GameData, Loan
 
 
 _ROUND_DURATION = 15 * 60  # in seconds
@@ -54,7 +54,46 @@ def loaning(request):
 
 @login_required(login_url='/admin/login')
 def lend(request):
+    player = get_object_or_404(Player, code=request.POST['player'].upper())
+    round_data = _get_round_data()
+    previous_loans = Loan.objects.filter(player=player, round=round_data["round"])
+    if len(previous_loans) > 0:
+        return render(request, 'merchant_game/loaning.html', context={
+            'error_message': 'Már vettél fel pénzt ebben a körben!',
+            'round_data': _get_round_data(),
+        })
+    amount_mapping = {
+        1: 500,
+        2: 600,
+        3: 700,
+        4: 800,
+        5: 900,
+        6: 1000,
+    }
+    loan = Loan(player=player, round=round_data["round"], amount=amount_mapping[round_data["round"]])
+    player.money += 1000
+    player.save()
+    loan.save()
     return HttpResponseRedirect(reverse('merchant_game:loaning'))
+
+
+@login_required(login_url='/admin/login/')
+def paying_back(request):
+    loans = Loan.objects.all()
+    return render(request, 'merchant_game/paying_back.html', context={
+        'loans': loans
+    })
+
+
+@login_required(login_url='/admin/login/')
+def payback(request):
+    loan = get_object_or_404(Loan, pk=request.POST['loan_id'].upper())
+    player = get_object_or_404(Player, code=loan.player.code)
+    round_data = _get_round_data()
+    player.money -= (loan.amount + ((round_data["round"] - loan.round) * int(loan.amount / 10)))
+    player.save()
+    loan.delete()
+    return HttpResponseRedirect(reverse('merchant_game:paying-back'))
 
 
 @login_required(login_url='/admin/login/')
