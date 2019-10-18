@@ -134,7 +134,7 @@ def trade(request, city):
 
 
 @login_required(login_url='/admin/login/')
-def bestowing(request, city):
+def bestowing(request, city=None):
     return render(request, 'merchant_game/bestowing.html', context={
         'city': city,
         'round_data': _get_round_data(),
@@ -142,7 +142,7 @@ def bestowing(request, city):
 
 
 @login_required(login_url='/admin/login/')
-def bestow(request, city):
+def bestow(request, city=None):
     giver = get_object_or_404(Player, code=request.POST['giver'].upper())
     receiver = get_object_or_404(Player, code=request.POST['receiver'].upper())
     valuable = request.POST['valuable']
@@ -165,7 +165,7 @@ def bestow(request, city):
                 'round_data': _get_round_data(),
             })
         setattr(giver, item_amount_name, getattr(giver, item_amount_name) - amount)
-        setattr(receiver, item_amount_name, getattr(giver, item_amount_name) + amount)
+        setattr(receiver, item_amount_name, getattr(receiver, item_amount_name) + amount)
     giver.save()
     receiver.save()
     return HttpResponseRedirect(reverse('merchant_game:city-bestowing', args=(city, )))
