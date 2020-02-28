@@ -101,4 +101,4 @@ class CityStock(models.Model):
 
 
 class GameData(models.Model):
-    starting_time = models.DateTimeField(default=timezone.now())
+    starting_time = models.DateTimeField(default=timezone.now)
