@@ -57,9 +57,13 @@ class City(models.Model):
         return self.name
 
 
+class Round(models.Model):
+    number = models.IntegerField(primary_key=True, editable=False)
+
+
 class CityStock(models.Model):
     city = models.ForeignKey(City, on_delete=models.CASCADE)
-    round = models.IntegerField()
+    round = models.ForeignKey(Round, on_delete=models.CASCADE)
     item_1_buy_price = models.IntegerField(blank=True, null=True, )
     item_1_sell_price = models.IntegerField(blank=True, null=True, )
     item_2_buy_price = models.IntegerField(blank=True, null=True, )
@@ -72,6 +76,11 @@ class CityStock(models.Model):
     item_5_sell_price = models.IntegerField(blank=True, null=True, )
     item_6_buy_price = models.IntegerField(blank=True, null=True, )
     item_6_sell_price = models.IntegerField(blank=True, null=True, )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['city', 'round'], name='city_stock'),
+        ]
 
     def __str__(self):
         return (
