@@ -4,32 +4,31 @@ from django.utils import timezone
 
 class Item(models.Model):
     name = models.CharField(max_length=20, primary_key=True)
+    
+    def __str__(self):
+        return "{}".format(self.name)
 
 
 class Player(models.Model):
     code = models.CharField(max_length=6, primary_key=True, blank=False)
     money = models.BigIntegerField(default=1000)
-    item_1_amount = models.BigIntegerField(default=0)
-    item_2_amount = models.BigIntegerField(default=0)
-    item_3_amount = models.BigIntegerField(default=0)
-    item_4_amount = models.BigIntegerField(default=0)
-    item_5_amount = models.BigIntegerField(default=0)
-    item_6_amount = models.BigIntegerField(default=0)
 
     def __str__(self):
-        return (
-            "{}, Money={}, item_1_amount={}, item_2_amount={}, item_3_amount={}, "
-            "item_4_amount={}, item_5_amount={}, item_6_amount={}".format(
-                self.code,
-                self.money,
-                self.item_1_amount,
-                self.item_2_amount,
-                self.item_3_amount,
-                self.item_4_amount,
-                self.item_5_amount,
-                self.item_6_amount,
-            )
-        )
+        return "{}".format(self.code)
+    
+
+class ItemAmount(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    amount = models.BigIntegerField(default=0)
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["item", "player"], name="player_item"),
+        ]
+    
+    def __str__(self):
+        return "{}, {}={}".format(self.player.code, self.item.name, self.amount)
 
 
 class Loan(models.Model):
@@ -40,59 +39,42 @@ class Loan(models.Model):
 
 class City(models.Model):
     name = models.CharField(max_length=20, primary_key=True)
+    
+    class Meta:
+        verbose_name_plural = "Cities"
 
     def __str__(self):
         return self.name
 
 
 class Round(models.Model):
-    number = models.IntegerField(primary_key=True, editable=False)
-
-
-class CityStock(models.Model):
+    number = models.AutoField(primary_key=True)
+    
+    def __str__(self):
+        return "Round {}".format(self.number)
+    
+    
+class ItemExchangeRate(models.Model):
     city = models.ForeignKey(City, on_delete=models.CASCADE)
     round = models.ForeignKey(Round, on_delete=models.CASCADE)
-    item_1_buy_price = models.IntegerField(blank=True, null=True, )
-    item_1_sell_price = models.IntegerField(blank=True, null=True, )
-    item_2_buy_price = models.IntegerField(blank=True, null=True, )
-    item_2_sell_price = models.IntegerField(blank=True, null=True, )
-    item_3_buy_price = models.IntegerField(blank=True, null=True, )
-    item_3_sell_price = models.IntegerField(blank=True, null=True, )
-    item_4_buy_price = models.IntegerField(blank=True, null=True, )
-    item_4_sell_price = models.IntegerField(blank=True, null=True, )
-    item_5_buy_price = models.IntegerField(blank=True, null=True, )
-    item_5_sell_price = models.IntegerField(blank=True, null=True, )
-    item_6_buy_price = models.IntegerField(blank=True, null=True, )
-    item_6_sell_price = models.IntegerField(blank=True, null=True, )
-
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    buy_price = models.IntegerField(blank=True, null=True)
+    sell_price = models.IntegerField(blank=True, null=True)
+    
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['city', 'round'], name='city_stock'),
+            models.UniqueConstraint(fields=["item", "city", "round"], name="city_item_exchange")
         ]
-
+        
     def __str__(self):
         return (
-            "{}, round={}, "
-            "item_1_buy={}, item_1_sell={}, "
-            "item_2_buy={}, item_2_sell={}, "
-            "item_3_buy={}, item_3_sell={}, "
-            "item_4_buy={}, item_4_sell={}, "
-            "item_5_buy={}, item_5_sell={}, "
-            "item_6_buy={}, item_6_sell={}".format(
-                self.city,
-                self.round,
-                self.item_1_buy_price,
-                self.item_1_sell_price,
-                self.item_2_buy_price,
-                self.item_2_sell_price,
-                self.item_3_buy_price,
-                self.item_3_sell_price,
-                self.item_4_buy_price,
-                self.item_4_sell_price,
-                self.item_5_buy_price,
-                self.item_5_sell_price,
-                self.item_6_buy_price,
-                self.item_6_sell_price,
+            "{city}, round: {round}, "
+            "{item} buy_price={buy_price}, sell_price={sell_price}".format(
+                city=self.city.name,
+                round=self.round.number,
+                item=self.item.name,
+                buy_price=self.buy_price,
+                sell_price=self.sell_price,
             )
         )
 
