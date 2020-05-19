@@ -23,6 +23,7 @@ def redirect_to_merchant_game(request):
 
 
 urlpatterns = [
+    path('api-auth/', include('rest_framework.urls')),
     path('merchant_game/', include('merchant_game.urls')),
     path('admin/', admin.site.urls),
     path('', redirect_to_merchant_game),

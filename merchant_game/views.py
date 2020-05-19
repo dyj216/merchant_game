@@ -1,22 +1,55 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User, Group
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
 from django.views.generic import RedirectView
 from django.utils import timezone
+from rest_framework import viewsets
+from rest_framework import permissions
+from rest_framework import generics
 
-from .models import Player, City, CityStock, GameData, Loan
+from .models import Player, City, GameData, Loan, Item
+from .serializers import UserSerializer, GroupSerializer, ItemSerializer
+
+
+class ItemList(generics.ListCreateAPIView):
+    queryset = Item.objects.all()
+    serializer_class = ItemSerializer
+
+
+class ItemDetails(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Item.objects.all()
+    serializer_class = ItemSerializer
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = User.objects.all().order_by('-date_joined')
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class GroupViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
 _ROUND_DURATION = 15 * 60  # in seconds
 
 
-def _get_current_stock_prices(city):
-    elapsed_seconds = _get_elapsed_seconds()
-    current_round = _get_current_round(elapsed_seconds)
-    return CityStock.objects.filter(city=city, round=current_round)[0]
+# def _get_current_stock_prices(city):
+#     elapsed_seconds = _get_elapsed_seconds()
+#     current_round = _get_current_round(elapsed_seconds)
+#     return CityStock.objects.filter(city=city, round=current_round)[0]
 
 
 def _get_elapsed_seconds():

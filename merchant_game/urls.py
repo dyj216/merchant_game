@@ -1,4 +1,5 @@
 from django.urls import path
+from rest_framework.urlpatterns import format_suffix_patterns
 
 from . import views
 
@@ -7,6 +8,8 @@ app_name = 'merchant_game'
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('api/items/', views.ItemList.as_view(), name='api-item-list'),
+    path('api/items/<str:pk>', views.ItemDetails.as_view(), name='api-item-details'),
     path('cities/', views.CitiesView.as_view(), name='cities'),
     path('loaning/', views.loaning, name='loaning'),
     path('lend/', views.lend, name='lend'),
