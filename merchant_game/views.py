@@ -1,46 +1,43 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import User, Group
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse
 from django.views import generic
 from django.views.generic import RedirectView
 from django.utils import timezone
-from rest_framework import viewsets
-from rest_framework import permissions
-from rest_framework import generics
+from rest_framework import permissions, viewsets, mixins
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
-from .models import Player, City, GameData, Loan, Item
-from .serializers import UserSerializer, GroupSerializer, ItemSerializer
-
-
-class ItemList(generics.ListCreateAPIView):
-    queryset = Item.objects.all()
-    serializer_class = ItemSerializer
+from .models import Player, City, GameData, Loan
+from .serializers import PlayerSerializer, CitySerializer, CityListSerializer
 
 
-class ItemDetails(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Item.objects.all()
-    serializer_class = ItemSerializer
+class PlayerViewSet(mixins.UpdateModelMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = Player.objects.all()
+    serializer_class = PlayerSerializer
+    permission_classes = [permissions.AllowAny]
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
-    queryset = User.objects.all().order_by('-date_joined')
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+class CityViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = City.objects.all()
+    serializer_class = CitySerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CityListSerializer
+        return super().get_serializer_class()
 
 
-class GroupViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows groups to be viewed or edited.
-    """
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
-    permission_classes = [permissions.IsAuthenticated]
+@api_view(['GET'])
+@permission_classes((permissions.AllowAny, ))
+def api_root(request, format=None):
+    return Response({
+        'players': reverse('player-list', request=request, format=format),
+        'cities': reverse('city-list', request=request, format=format),
+    })
 
 
 _ROUND_DURATION = 15 * 60  # in seconds
