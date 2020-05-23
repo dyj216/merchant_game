@@ -1,12 +1,18 @@
+from django.conf.urls import url
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
 from . import views
 
 
+router = DefaultRouter()
+router.register(r'players', views.PlayerViewSet)
+router.register(r'cities', views.CityViewSet)
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('api/items/', views.ItemList.as_view(), name='api-item-list'),
-    path('api/items/<str:pk>', views.ItemDetails.as_view(), name='api-item-details'),
+    path('api/', views.api_root, name='api'),
+    url(r'^api/', include(router.urls)),
     path('cities/', views.CitiesView.as_view(), name='cities'),
     path('loaning/', views.loaning, name='loaning'),
     # path('lend/', views.lend, name='lend'),
