@@ -19,7 +19,7 @@ from django.urls import include, path
 
 
 def redirect_to_merchant_game(request):
-    return redirect('merchant_game:index', permanent=True)
+    return redirect('index', permanent=True)
 
 
 urlpatterns = [

@@ -107,7 +107,7 @@ def lend(request):
     player.money += amount_mapping[round_data["round"]]
     player.save()
     loan.save()
-    return HttpResponseRedirect(reverse('merchant_game:loaning'))
+    return HttpResponseRedirect(reverse('loaning'))
 
 
 @login_required(login_url='/admin/login/')
@@ -127,7 +127,7 @@ def payback(request):
     player.money -= (loan.amount + ((round_data["round"] - loan.round) * int(loan.amount / 10)))
     player.save()
     loan.delete()
-    return HttpResponseRedirect(reverse('merchant_game:paying-back'))
+    return HttpResponseRedirect(reverse('paying-back'))
 
 
 @login_required(login_url='/admin/login/')
@@ -159,7 +159,7 @@ def end(request):
             player.money -= (loan.amount + ((6 - loan.round) * int(loan.amount / 10)))
             loan.delete()
         player.save()
-    return HttpResponseRedirect(reverse('merchant_game:players'))
+    return HttpResponseRedirect(reverse('players'))
 
 
 @login_required(login_url='/admin/login/')
@@ -235,7 +235,7 @@ def trade(request, city):
         player.money += total_price
         setattr(player, '{}_amount'.format(valuable), player_item_mapping[valuable] - item_amount)
     player.save()
-    return HttpResponseRedirect(reverse('merchant_game:city-trading', args=(city, )))
+    return HttpResponseRedirect(reverse('city-trading', args=(city, )))
 
 
 @login_required(login_url='/admin/login/')
@@ -273,7 +273,7 @@ def bestow(request, city=None):
         setattr(receiver, item_amount_name, getattr(receiver, item_amount_name) + amount)
     giver.save()
     receiver.save()
-    return HttpResponseRedirect(reverse('merchant_game:city-bestowing', args=(city, )))
+    return HttpResponseRedirect(reverse('city-bestowing', args=(city, )))
 
 
 @login_required(login_url='/admin/login/')
@@ -308,7 +308,7 @@ def rob(request, city):
         robbed.item_6_amount = 0
     robber.save()
     robbed.save()
-    return HttpResponseRedirect(reverse('merchant_game:city-stock', args=(city, )))
+    return HttpResponseRedirect(reverse('city-stock', args=(city, )))
 
 
 class CitiesView(LoginRequiredMixin, generic.ListView):
@@ -341,7 +341,7 @@ class PlayerView(generic.DetailView):
 class PlayerSearchRedirectView(RedirectView):
     permanent = False
     query_string = False
-    pattern_name = 'merchant_game:player'
+    pattern_name = 'player'
 
     def get_redirect_url(self, *args, **kwargs):
         player_code = self.request.GET['pk'].upper()
