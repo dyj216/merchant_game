@@ -1,7 +1,7 @@
 from django.db.models import Max
 from rest_framework import serializers
 
-from .models import Player, City, ItemExchangeRate
+from .models import Player, City, ItemExchangeRate, ItemAmount, Item
 
 
 class PlayerSerializer(serializers.HyperlinkedModelSerializer):
@@ -16,6 +16,17 @@ class PlayerSerializer(serializers.HyperlinkedModelSerializer):
         return {
             item.item.name: item.amount for item in player.items.all()
         }
+
+    def update(self, instance, validated_data):
+        super().update(instance, validated_data)
+
+        items = self.initial_data.get("items", None)
+        if items:
+            for item_name, amount in items.items():
+                item = ItemAmount.objects.get(player=instance, item=Item.objects.get(name=item_name))
+                item.amount = amount
+                item.save()
+        return instance
 
 
 class ItemExchangeRateSerializer(serializers.ModelSerializer):
