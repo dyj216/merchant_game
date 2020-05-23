@@ -18,7 +18,7 @@ class Player(models.Model):
     
 
 class ItemAmount(models.Model):
-    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='items')
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     amount = models.BigIntegerField(default=0)
     
@@ -55,7 +55,7 @@ class Round(models.Model):
     
     
 class ItemExchangeRate(models.Model):
-    city = models.ForeignKey(City, on_delete=models.CASCADE)
+    city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='rates')
     round = models.ForeignKey(Round, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     buy_price = models.IntegerField(blank=True, null=True)
