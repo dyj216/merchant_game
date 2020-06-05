@@ -353,44 +353,6 @@ def city_stock_detail(request, city):
     })
 
 
-@login_required(login_url='/admin/login/')
-def bestowing(request, city=None):
-    return render(request, 'merchant_game/bestowing.html', context={
-        'city': city,
-        'round_data': _get_round_data(),
-    })
-
-
-@login_required(login_url='/admin/login/')
-def bestow(request, city=None):
-    giver = get_object_or_404(Player, code=request.POST['giver'].upper())
-    receiver = get_object_or_404(Player, code=request.POST['receiver'].upper())
-    valuable = request.POST['valuable']
-    amount = int(request.POST['amount'])
-    if valuable == 'money':
-        if amount > giver.money:
-            return render(request, 'merchant_game/bestowing.html', context={
-                'city': city,
-                'error_message': 'Nincs ennyi pénzed!',
-                'round_data': _get_round_data(),
-            })
-        receiver.money += amount
-        giver.money -= amount
-    else:
-        item_amount_name = "{}_amount".format(valuable)
-        if amount > getattr(giver, item_amount_name):
-            return render(request, 'merchant_game/bestowing.html', context={
-                'city': city,
-                'error_message': 'Nincs ennyi terméked!',
-                'round_data': _get_round_data(),
-            })
-        setattr(giver, item_amount_name, getattr(giver, item_amount_name) - amount)
-        setattr(receiver, item_amount_name, getattr(receiver, item_amount_name) + amount)
-    giver.save()
-    receiver.save()
-    return HttpResponseRedirect(reverse('city-bestowing', args=(city, )))
-
-
 class CitiesView(LoginRequiredMixin, generic.ListView):
     login_url = '/admin/login/'
 
