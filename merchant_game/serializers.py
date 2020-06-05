@@ -33,10 +33,11 @@ class ItemsField(serializers.Field):
 class PlayerSerializer(serializers.HyperlinkedModelSerializer):
     items = ItemsField()
     rob = serializers.HyperlinkedIdentityField(view_name='player-rob')
+    gift = serializers.HyperlinkedIdentityField(view_name='player-gift')
 
     class Meta:
         model = Player
-        fields = ['url', 'code', 'money', 'items', 'rob']
+        fields = ['url', 'code', 'money', 'items', 'rob', 'gift']
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
