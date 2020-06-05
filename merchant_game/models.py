@@ -34,7 +34,7 @@ class ItemAmount(models.Model):
 
 
 class Loan(models.Model):
-    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='loans')
     round = models.IntegerField()
     amount = models.IntegerField()
 
