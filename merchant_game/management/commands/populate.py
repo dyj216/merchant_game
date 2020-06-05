@@ -266,8 +266,11 @@ class Command(BaseCommand):
         for city_name in ["Budapest", "Szeged", "Debrecen", "Sopron", "Eger"]:
             city = City(name=city_name)
             city.save()
-        for item_name in ["mercury", "sulfur", "crystal", "gem", "wood", "ore"]:
-            item = Item(name=item_name)
+        for item_name, ending_price in zip(
+                ["mercury", "sulfur", "crystal", "gem", "wood", "ore"],
+                [16, 20, 18, 14, 15, 11],
+        ):
+            item = Item(name=item_name, ending_price=ending_price)
             item.save()
         for i in range(1, 7):
             r = Round()
