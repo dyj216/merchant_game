@@ -32,10 +32,11 @@ class ItemsField(serializers.Field):
 
 class PlayerSerializer(serializers.HyperlinkedModelSerializer):
     items = ItemsField()
+    rob = serializers.HyperlinkedIdentityField(view_name='player-rob')
 
     class Meta:
         model = Player
-        fields = ['url', 'code', 'money', 'items']
+        fields = ['url', 'code', 'money', 'items', 'rob']
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
@@ -52,9 +53,13 @@ class ItemExchangeRateSerializer(serializers.ModelSerializer):
 
 
 class CitySerializer(serializers.ModelSerializer):
+    current = serializers.HyperlinkedIdentityField(view_name='city-current-rates')
+    buy = serializers.HyperlinkedIdentityField(view_name='city-buy')
+    sell = serializers.HyperlinkedIdentityField(view_name='city-sell')
+
     class Meta:
         model = City
-        fields = ['name', 'rates']
+        fields = ['name', 'current', 'buy', 'sell', 'rates']
         depth = 1
 
 
