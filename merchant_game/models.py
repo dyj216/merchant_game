@@ -50,17 +50,6 @@ class Round(models.Model):
         return "Round {}".format(self.number)
 
 
-class Loan(models.Model):
-    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='loans')
-    round = models.ForeignKey(Round, on_delete=models.CASCADE)
-    amount = models.IntegerField()
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=["player", "round"], name="player_loan_round")
-        ]
-    
-    
 class ItemExchangeRate(models.Model):
     city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='rates')
     round = models.ForeignKey(Round, on_delete=models.CASCADE)
@@ -105,3 +94,18 @@ class GameData(models.Model):
             if elapsed_time <= self.round_duration * self.last_round
             else self.last_round
         )
+
+
+class Loan(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='loans')
+    round = models.ForeignKey(Round, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["player", "round"], name="player_loan_round")
+        ]
+
+    @property
+    def amount(self):
+        game_data = GameData.objects.last()
+        return game_data.starting_loan + (self.round.number - 1) * game_data.loan_increase
