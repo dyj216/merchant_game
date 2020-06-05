@@ -18,7 +18,7 @@ from .serializers import PlayerSerializer, CitySerializer, CityListSerializer
 class PlayerViewSet(mixins.UpdateModelMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class CityViewSet(viewsets.ReadOnlyModelViewSet):
