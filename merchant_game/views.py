@@ -329,41 +329,6 @@ def bestow(request, city=None):
     return HttpResponseRedirect(reverse('city-bestowing', args=(city, )))
 
 
-@login_required(login_url='/admin/login/')
-def robbing(request, city):
-    return render(request, 'merchant_game/robbing.html', context={
-        'city': city,
-        'round_data': _get_round_data(),
-    })
-
-
-@login_required(login_url='/admin/login/')
-def rob(request, city):
-    # robber = Player.objects.filter(name=request.POST['robber'])[0]
-    robber = get_object_or_404(Player, code=request.POST['robber'].upper())
-    robbed = get_object_or_404(Player, code=request.POST['robbed'].upper())
-    taken_valuables = request.POST['valuables']
-    if taken_valuables == 'money':
-        robber.money += robbed.money
-        robbed.money = 0
-    else:
-        robber.item_1_amount += robbed.item_1_amount
-        robber.item_2_amount += robbed.item_2_amount
-        robber.item_3_amount += robbed.item_3_amount
-        robber.item_4_amount += robbed.item_4_amount
-        robber.item_5_amount += robbed.item_5_amount
-        robber.item_6_amount += robbed.item_6_amount
-        robbed.item_1_amount = 0
-        robbed.item_2_amount = 0
-        robbed.item_3_amount = 0
-        robbed.item_4_amount = 0
-        robbed.item_5_amount = 0
-        robbed.item_6_amount = 0
-    robber.save()
-    robbed.save()
-    return HttpResponseRedirect(reverse('city-stock', args=(city, )))
-
-
 class CitiesView(LoginRequiredMixin, generic.ListView):
     login_url = '/admin/login/'
 
