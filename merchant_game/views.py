@@ -72,7 +72,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         return super().get_serializer_class()
 
     @action(detail=True)
-    def current(self, request, *args, **kwargs):
+    def current_rates(self, request, *args, **kwargs):
         city = self.get_object()
         game_data = GameData.objects.last()
         response = {
