@@ -6,6 +6,7 @@ from django.utils import timezone
 
 class Item(models.Model):
     name = models.CharField(max_length=20, primary_key=True)
+    ending_price = models.IntegerField(default=10)
     
     def __str__(self):
         return "{}".format(self.name)
