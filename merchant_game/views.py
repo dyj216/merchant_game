@@ -12,6 +12,7 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
+from .exceptions import InvalidRequestException
 from .models import Player, City, GameData, Loan, Round
 from .serializers import PlayerSerializer, CitySerializer, CityListSerializer, ItemExchangeRateSerializer
 
@@ -42,32 +43,23 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         } if game_data else {}
         return Response(response)
 
-    @action(methods=['PUT'], detail=True)
-    def sell(self, request, *args, **kwargs):
+    def _validate_trade_data(self, request):
         city = self.get_object()
         player_code = request.data.get('player', None)
         item_name = request.data.get('item', None)
         amount = request.data.get('amount', None)
         if player_code is None or item_name is None or amount is None:
-            return Response({'error': 'player, item and amount are required'}, status=status.HTTP_400_BAD_REQUEST)
+            raise InvalidRequestException("player, item and amount are required")
 
         current_round = GameData.objects.last().current_round
-        try:
-            player = Player.objects.get(code=player_code)
-            rate = city.rates.get(round=current_round, item=item_name)
-        except exceptions.ObjectDoesNotExist as ex:
-            return Response({'error': str(ex)}, status=status.HTTP_404_NOT_FOUND)
 
-        new_money = player.money - rate.sell_price * amount
-        if new_money < 0:
-            return Response({'error': 'Not enough money'}, status=status.HTTP_400_BAD_REQUEST)
-        data = {
-            'code': player_code,
-            'money': new_money,
-            'items': {
-                item_name: player.items.get(item=item_name).amount + amount,
-            }
-        }
+        player = Player.objects.get(code=player_code)
+        rate = city.rates.get(round=current_round, item=item_name)
+
+        return player, rate, item_name, amount
+
+    @staticmethod
+    def _serialize_trade(player, data):
         player_serializer = PlayerSerializer(instance=player, data=data)
         if player_serializer.is_valid():
             player_serializer.save()
@@ -76,18 +68,32 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(player_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['PUT'], detail=True)
-    def buy(self, request, *args, **kwargs):
-        city = self.get_object()
-        player_code = request.data.get('player', None)
-        item_name = request.data.get('item', None)
-        amount = request.data.get('amount', None)
-        if player_code is None or item_name is None or amount is None:
-            return Response({'error': 'player, item and amount are required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        current_round = GameData.objects.last().current_round
+    def sell(self, request, *args, **kwargs):
         try:
-            player = Player.objects.get(code=player_code)
-            rate = city.rates.get(round=current_round, item=item_name)
+            player, rate, item_name, amount = self._validate_trade_data(request)
+        except InvalidRequestException as ex:
+            return Response(ex.get_full_details(), status=ex.status_code)
+        except exceptions.ObjectDoesNotExist as ex:
+            return Response({'error': str(ex)}, status=status.HTTP_404_NOT_FOUND)
+
+        new_money = player.money - rate.sell_price * amount
+        if new_money < 0:
+            return Response({'error': 'Not enough money'}, status=status.HTTP_400_BAD_REQUEST)
+        data = {
+            'code': player.code,
+            'money': new_money,
+            'items': {
+                item_name: player.items.get(item=item_name).amount + amount,
+            }
+        }
+        return self._serialize_trade(player, data)
+
+    @action(methods=['PUT'], detail=True)
+    def buy(self, request, *args, **kwargs):
+        try:
+            player, rate, item_name, amount = self._validate_trade_data(request)
+        except InvalidRequestException as ex:
+            return Response(ex.get_full_details(), status=ex.status_code)
         except exceptions.ObjectDoesNotExist as ex:
             return Response({'error': str(ex)}, status=status.HTTP_404_NOT_FOUND)
 
@@ -95,18 +101,13 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         if new_item_amount < 0:
             return Response({'error': 'Not enough item'}, status=status.HTTP_400_BAD_REQUEST)
         data = {
-            'code': player_code,
+            'code': player.code,
             'money': player.money + rate.buy_price * amount,
             'items': {
                 item_name: new_item_amount,
             }
         }
-        player_serializer = PlayerSerializer(instance=player, data=data)
-        if player_serializer.is_valid():
-            player_serializer.save()
-            return Response({'status': 'items bought'})
-        else:
-            return Response(player_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return self._serialize_trade(player, data)
 
 
 @api_view(['GET'])
