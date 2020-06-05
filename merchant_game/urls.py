@@ -13,5 +13,6 @@ router.register(r'loans', views.LoanViewSet)
 urlpatterns = [
     path('', views.index, name='index'),
     path('api/', views.api_root, name='api'),
+    path('api/end', views.End.as_view(), name='end'),
     url(r'^api/', include(router.urls)),
 ]

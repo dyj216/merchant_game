@@ -10,6 +10,7 @@ from rest_framework import permissions, viewsets, mixins, status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.views import APIView
 
 from .exceptions import InvalidRequestException
 from .models import Player, City, GameData, Loan, Round
@@ -243,13 +244,33 @@ class LoanViewSet(
         instance.delete()
 
 
+@permission_classes((permissions.AllowAny, ))
+class End(APIView):
+    def get(self, request, format=None):
+        return Response("Send a POST request to finish the game.")
+
+    def post(self, request, format=None):
+        players = Player.objects.all()
+        for player in players:
+            for item in player.items.all():
+                player.money += item.item.ending_price * item.amount
+                item.amount = 0
+                item.save()
+            player.save()
+        loans = Loan.objects.all()
+        for loan in loans:
+            loan.delete()
+        return Response("Every players items are converted to money and repay loans.")
+
+
 @api_view(['GET'])
 @permission_classes((permissions.AllowAny, ))
 def api_root(request, format=None):
     return Response({
         'players': reverse('player-list', request=request, format=format),
         'cities': reverse('city-list', request=request, format=format),
-        'loans': reverse('loan-list', request=request, format=format)
+        'loans': reverse('loan-list', request=request, format=format),
+        'end': reverse('end', request=request, format=format),
     })
 
 
