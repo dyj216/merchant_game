@@ -344,36 +344,8 @@ def end(request):
     return HttpResponseRedirect(reverse('players'))
 
 
-@login_required(login_url='/admin/login/')
-def city_stock_detail(request, city):
-    stock_prices = _get_current_stock_prices(city)
-    return render(request, 'merchant_game/city_stock_detail.html', context={
-        'city_stock': stock_prices,
-        'round_data': _get_round_data(),
-    })
-
-
-class CitiesView(LoginRequiredMixin, generic.ListView):
-    login_url = '/admin/login/'
-
-    model = City
-    context_object_name = 'cities'
-
-    def get_queryset(self):
-        return City.objects.all()
-
-
 def player_searching(request):
     return render(request, 'merchant_game/player_searching.html')
-
-
-class PlayersView(generic.ListView):
-    model = Player
-    context_object_name = 'players'
-    # template_name = 'merchant_game/player_list.html'
-
-    def get_queryset(self):
-        return Player.objects.all()
 
 
 class PlayerView(generic.DetailView):
