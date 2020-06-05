@@ -36,22 +36,10 @@ class ItemExchangeRateSerializer(serializers.ModelSerializer):
 
 
 class CitySerializer(serializers.ModelSerializer):
-    rates = serializers.SerializerMethodField()
-
     class Meta:
         model = City
         fields = ['name', 'rates']
-
-    @staticmethod
-    def get_rates(city):
-        last_round = int(city.rates.all().aggregate(Max('round'))['round__max'])
-        return {
-            i: {
-                rate.item.name: ItemExchangeRateSerializer().to_representation(rate)
-                for rate in city.rates.filter(round=i)
-            }
-            for i in range(1, last_round + 1)
-        }
+        depth = 1
 
 
 class CityListSerializer(serializers.HyperlinkedModelSerializer):
