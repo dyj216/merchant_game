@@ -80,6 +80,7 @@ class GameData(models.Model):
     round_duration = models.IntegerField(verbose_name="Round duration in minutes", default=15)
     starting_loan = models.IntegerField(verbose_name="Loan in the first round", default=500)
     loan_increase = models.IntegerField(verbose_name="Loan increase in each round", default=100)
+    loan_interest = models.IntegerField(verbose_name="Loan interest rate (%)", default=10)
 
     @property
     def last_round(self):
