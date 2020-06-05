@@ -33,12 +33,6 @@ class ItemAmount(models.Model):
         return "{}, {}={}".format(self.player.code, self.item.name, self.amount)
 
 
-class Loan(models.Model):
-    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='loans')
-    round = models.IntegerField()
-    amount = models.IntegerField()
-
-
 class City(models.Model):
     name = models.CharField(max_length=20, primary_key=True)
     
@@ -54,6 +48,17 @@ class Round(models.Model):
     
     def __str__(self):
         return "Round {}".format(self.number)
+
+
+class Loan(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='loans')
+    round = models.ForeignKey(Round, on_delete=models.CASCADE)
+    amount = models.IntegerField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["player", "round"], name="player_loan_round")
+        ]
     
     
 class ItemExchangeRate(models.Model):
