@@ -35,7 +35,7 @@ class PlayerViewSet(mixins.UpdateModelMixin, viewsets.ReadOnlyModelViewSet):
         try:
             robber = Player.objects.get(code=robber_code)
         except exceptions.ObjectDoesNotExist as ex:
-            return Response({'error': str(ex)}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': str(ex), 'robber': robber_code}, status=status.HTTP_404_NOT_FOUND)
 
         response_dict = {
             'status': 'Rob successful',
