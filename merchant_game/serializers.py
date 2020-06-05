@@ -1,7 +1,7 @@
 from django.core import exceptions
 from rest_framework import serializers
 
-from .models import Player, City, ItemExchangeRate, ItemAmount
+from .models import Player, City, ItemExchangeRate, ItemAmount, Loan, Round
 
 
 class ItemsField(serializers.Field):
@@ -37,7 +37,7 @@ class PlayerSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Player
-        fields = ['url', 'code', 'money', 'items', 'rob', 'gift']
+        fields = ['url', 'code', 'money', 'items', 'rob', 'gift', 'loans']
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
@@ -68,3 +68,20 @@ class CityListSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = City
         fields = ['url', 'name']
+
+
+class RoundSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Round
+
+
+class LoanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Loan
+        fields = ['url', 'player', 'round', 'amount']
+        depth = 0
+
+    def validate(self, attrs):
+        if len(Loan.objects.filter(player=attrs['player'], round=attrs['round'])):
+            raise serializers.ValidationError("The player has already took a loan in the given round")
+        return attrs

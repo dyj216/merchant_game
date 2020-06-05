@@ -2,7 +2,6 @@ from django.contrib.auth.decorators import login_required
 from django.core import exceptions
 from django.db.models import Max
 from django.http import HttpResponseRedirect
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
 from django.views.generic import RedirectView
@@ -14,7 +13,13 @@ from rest_framework.reverse import reverse
 
 from .exceptions import InvalidRequestException
 from .models import Player, City, GameData, Loan, Round
-from .serializers import PlayerSerializer, CitySerializer, CityListSerializer, ItemExchangeRateSerializer
+from .serializers import (
+    PlayerSerializer,
+    CitySerializer,
+    CityListSerializer,
+    ItemExchangeRateSerializer,
+    LoanSerializer,
+)
 
 
 class PlayerViewSet(mixins.UpdateModelMixin, viewsets.ReadOnlyModelViewSet):
@@ -213,12 +218,38 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         return self._serialize_trade(player, data)
 
 
+class LoanViewSet(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.ReadOnlyModelViewSet
+):
+    queryset = Loan.objects.all()
+    serializer_class = LoanSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        instance.player.money += instance.amount
+        instance.player.save()
+
+    def perform_destroy(self, instance):
+        game_data = GameData.objects.last()
+        instance.player.money -= (
+            instance.amount + (
+                (game_data.current_round - instance.round.number) * int(instance.amount * game_data.loan_interest/100)
+            )
+        )
+        instance.player.save()
+        instance.delete()
+
+
 @api_view(['GET'])
 @permission_classes((permissions.AllowAny, ))
 def api_root(request, format=None):
     return Response({
         'players': reverse('player-list', request=request, format=format),
         'cities': reverse('city-list', request=request, format=format),
+        'loans': reverse('loan-list', request=request, format=format)
     })
 
 
