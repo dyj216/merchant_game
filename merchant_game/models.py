@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Max
 from django.utils import timezone
 
 
@@ -82,3 +83,17 @@ class ItemExchangeRate(models.Model):
 class GameData(models.Model):
     starting_time = models.DateTimeField(default=timezone.now)
     round_duration = models.IntegerField(verbose_name="Round duration in minutes", default=15)
+
+    @property
+    def last_round(self):
+        return Round.objects.all().aggregate(Max('number'))['number__max']
+
+    @property
+    def current_round(self):
+        now = timezone.now()
+        elapsed_time = int((now - self.starting_time).total_seconds())
+        return (
+            int(elapsed_time / self.round_duration) + 1
+            if elapsed_time <= self.round_duration * self.last_round
+            else self.last_round
+        )
