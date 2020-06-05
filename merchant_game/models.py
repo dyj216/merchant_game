@@ -84,6 +84,8 @@ class ItemExchangeRate(models.Model):
 class GameData(models.Model):
     starting_time = models.DateTimeField(default=timezone.now)
     round_duration = models.IntegerField(verbose_name="Round duration in minutes", default=15)
+    starting_loan = models.IntegerField(verbose_name="Loan in the first round", default=500)
+    loan_increase = models.IntegerField(verbose_name="Loan increase in each round", default=100)
 
     @property
     def last_round(self):
