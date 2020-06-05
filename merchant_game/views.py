@@ -22,6 +22,44 @@ class PlayerViewSet(mixins.UpdateModelMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = PlayerSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    @action(methods=['PUT'], detail=True)
+    def rob(self, request, *args, **kwargs):
+        robbed = self.get_object()
+        robber_code = request.data.get('robber', None)
+        rob_money = request.data.get('rob_money', True)
+
+        if robber_code is None:
+            raise InvalidRequestException("robber is required")
+        if not isinstance(rob_money, bool):
+            raise InvalidRequestException("rob_money should be a boolean")
+        try:
+            robber = Player.objects.get(code=robber_code)
+        except exceptions.ObjectDoesNotExist as ex:
+            return Response({'error': str(ex)}, status=status.HTTP_404_NOT_FOUND)
+
+        response_dict = {
+            'status': 'Rob successful',
+            'robber': robber.code,
+            'robbed': robbed.code
+        }
+        if rob_money:
+            robber.money += robbed.money
+            response_dict['money'] = robbed.money
+            robbed.money = 0
+        else:
+            response_dict['items'] = {}
+            for robbed_item in robbed.items.exclude(amount=0):
+                robber_item = robber.items.get(item=robbed_item.item.name)
+                robber_item.amount += robbed_item.amount
+                response_dict['items'][robber_item.item.name] = robbed_item.amount
+                robbed_item.amount = 0
+                robber_item.save()
+                robbed_item.save()
+        robber.save()
+        robbed.save()
+
+        return Response(response_dict)
+
 
 class CityViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = City.objects.all()
