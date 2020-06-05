@@ -101,7 +101,10 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         player_serializer = PlayerSerializer(instance=player, data=data)
         if player_serializer.is_valid():
             player_serializer.save()
-            return Response({'status': 'items sold'})
+            return Response({
+                'status': 'Trade successful',
+                'player': data
+            })
         else:
             return Response(player_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
