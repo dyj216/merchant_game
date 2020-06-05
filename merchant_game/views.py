@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Max
 from django.http import HttpResponseRedirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
@@ -10,7 +11,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from .models import Player, City, GameData, Loan
+from .models import Player, City, GameData, Loan, Round
 from .serializers import PlayerSerializer, CitySerializer, CityListSerializer
 
 
@@ -61,10 +62,13 @@ def _get_current_round(elapsed_seconds):
 
 
 def _get_round_data():
-    elapsed_seconds = _get_elapsed_seconds()
-    current_round = _get_current_round(elapsed_seconds)
-    seconds_remaining = _ROUND_DURATION - (elapsed_seconds % _ROUND_DURATION) if int(
-        elapsed_seconds / _ROUND_DURATION) < 6 else 0
+    game_data = GameData.objects.latest('starting_time')
+    last_round = Round.objects.all().aggregate(Max('number'))['number__max']
+    current_round = game_data.active_round.number
+    round_duration = game_data.round_duration
+    elapsed_seconds = (timezone.now() - game_data.starting_time).total_seconds()
+    seconds_remaining = round_duration - (elapsed_seconds % round_duration) if int(
+        elapsed_seconds / round_duration) < last_round else 0
     return {"round": current_round, "time_remaining": seconds_remaining}
 
 

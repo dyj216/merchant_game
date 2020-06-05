@@ -81,3 +81,4 @@ class ItemExchangeRate(models.Model):
 
 class GameData(models.Model):
     starting_time = models.DateTimeField(default=timezone.now)
+    round_duration = models.IntegerField(verbose_name="Round duration in minutes", default=15)
