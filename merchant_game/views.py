@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core import exceptions
 from django.db.models import Max
 from django.http import HttpResponseRedirect
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -6,13 +7,13 @@ from django.shortcuts import render, get_object_or_404
 from django.views import generic
 from django.views.generic import RedirectView
 from django.utils import timezone
-from rest_framework import permissions, viewsets, mixins
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import permissions, viewsets, mixins, status
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from .models import Player, City, GameData, Loan, Round
-from .serializers import PlayerSerializer, CitySerializer, CityListSerializer
+from .serializers import PlayerSerializer, CitySerializer, CityListSerializer, ItemExchangeRateSerializer
 
 
 class PlayerViewSet(mixins.UpdateModelMixin, viewsets.ReadOnlyModelViewSet):
@@ -30,6 +31,82 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == 'list':
             return CityListSerializer
         return super().get_serializer_class()
+
+    @action(detail=True)
+    def current(self, request, *args, **kwargs):
+        city = self.get_object()
+        game_data = GameData.objects.last()
+        response = {
+            rate.item.name: ItemExchangeRateSerializer().to_representation(rate)
+            for rate in city.rates.filter(round=GameData.objects.last().current_round)
+        } if game_data else {}
+        return Response(response)
+
+    @action(methods=['PUT'], detail=True)
+    def sell(self, request, *args, **kwargs):
+        city = self.get_object()
+        player_code = request.data.get('player', None)
+        item_name = request.data.get('item', None)
+        amount = request.data.get('amount', None)
+        if player_code is None or item_name is None or amount is None:
+            return Response({'error': 'player, item and amount are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        current_round = GameData.objects.last().current_round
+        try:
+            player = Player.objects.get(code=player_code)
+            rate = city.rates.get(round=current_round, item=item_name)
+        except exceptions.ObjectDoesNotExist as ex:
+            return Response({'error': str(ex)}, status=status.HTTP_404_NOT_FOUND)
+
+        new_money = player.money - rate.sell_price * amount
+        if new_money < 0:
+            return Response({'error': 'Not enough money'}, status=status.HTTP_400_BAD_REQUEST)
+        data = {
+            'code': player_code,
+            'money': new_money,
+            'items': {
+                item_name: player.items.get(item=item_name).amount + amount,
+            }
+        }
+        player_serializer = PlayerSerializer(instance=player, data=data)
+        if player_serializer.is_valid():
+            player_serializer.save()
+            return Response({'status': 'items sold'})
+        else:
+            return Response(player_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['PUT'], detail=True)
+    def buy(self, request, *args, **kwargs):
+        city = self.get_object()
+        player_code = request.data.get('player', None)
+        item_name = request.data.get('item', None)
+        amount = request.data.get('amount', None)
+        if player_code is None or item_name is None or amount is None:
+            return Response({'error': 'player, item and amount are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        current_round = GameData.objects.last().current_round
+        try:
+            player = Player.objects.get(code=player_code)
+            rate = city.rates.get(round=current_round, item=item_name)
+        except exceptions.ObjectDoesNotExist as ex:
+            return Response({'error': str(ex)}, status=status.HTTP_404_NOT_FOUND)
+
+        new_item_amount = player.items.get(item=item_name).amount - amount
+        if new_item_amount < 0:
+            return Response({'error': 'Not enough item'}, status=status.HTTP_400_BAD_REQUEST)
+        data = {
+            'code': player_code,
+            'money': player.money + rate.buy_price * amount,
+            'items': {
+                item_name: new_item_amount,
+            }
+        }
+        player_serializer = PlayerSerializer(instance=player, data=data)
+        if player_serializer.is_valid():
+            player_serializer.save()
+            return Response({'status': 'items bought'})
+        else:
+            return Response(player_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
