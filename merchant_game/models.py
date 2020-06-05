@@ -1,3 +1,4 @@
+from django.core import validators
 from django.db import models
 from django.db.models import Max
 from django.utils import timezone
@@ -21,7 +22,7 @@ class Player(models.Model):
 class ItemAmount(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='items')
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    amount = models.BigIntegerField(default=0)
+    amount = models.BigIntegerField(default=0, validators=[validators.MinValueValidator(0)])
     
     class Meta:
         constraints = [
