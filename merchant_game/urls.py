@@ -9,6 +9,8 @@ router = DefaultRouter()
 router.register(r'players', views.PlayerViewSet)
 router.register(r'cities', views.CityViewSet)
 router.register(r'loans', views.LoanViewSet)
+router.register(r'transactions', views.TransactionViewSet)
+router.register(r'player-transactions', views.PlayerTransactionViewSet)
 
 urlpatterns = [
     path('', views.index, name='index'),

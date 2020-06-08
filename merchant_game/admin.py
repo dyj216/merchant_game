@@ -1,29 +1,50 @@
 from django.contrib import admin
 
-from .models import City, Item, Player, GameData, Loan, Round, ItemAmount, ItemExchangeRate
+from .models import (
+    City,
+    Item,
+    Player,
+    GameData,
+    Loan,
+    Round,
+    ItemExchangeRate,
+    Transaction,
+    PlayerTransaction,
+    PlayerTransactionItemAmount,
+)
 
 
-class ItemAmountInline(admin.TabularInline):
-    model = ItemAmount
+class TransactionInline(admin.TabularInline):
+    model = Transaction
+    extra = 1
+
+
+class GiverTransactionInline(admin.TabularInline):
+    model = PlayerTransaction
+    fk_name = 'giver'
+    extra = 1
+    show_change_link = True
+
+
+class TakerTransactionInline(admin.TabularInline):
+    model = PlayerTransaction
+    fk_name = 'taker'
+    extra = 1
+    show_change_link = True
 
 
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ('code', 'money', 'item_amounts')
     inlines = [
-        ItemAmountInline,
+        TransactionInline,
+        GiverTransactionInline,
+        TakerTransactionInline,
     ]
-
-    @staticmethod
-    def item_amounts(obj):
-        item_amounts = ItemAmount.objects.filter(player=obj)
-        return ", ".join(
-            ("{}={}".format(item_amount.item.name, item_amount.amount) for item_amount in item_amounts)
-        )
 
 
 class ItemExchangeRateInline(admin.TabularInline):
     model = ItemExchangeRate
+    extra = 1
     
     
 @admin.register(City)
@@ -33,15 +54,27 @@ class CityAdmin(admin.ModelAdmin):
     ]
     
     
-@admin.register(ItemAmount)
-class ItemAmountAdmin(admin.ModelAdmin):
-    list_display = ('player', 'item', 'amount')
-    
-    
 @admin.register(ItemExchangeRate)
 class ItemExchangeRateAdmin(admin.ModelAdmin):
     list_display = ('city', 'round', 'buy_price', 'sell_price')
-    
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    pass
+
+
+class PlayerTransactionItemAmountInline(admin.TabularInline):
+    model = PlayerTransactionItemAmount
+    extra = 1
+
+
+@admin.register(PlayerTransaction)
+class PlayerTransactionAdmin(admin.ModelAdmin):
+    inlines = [
+        PlayerTransactionItemAmountInline,
+    ]
+
 
 admin.site.register(Item)
 admin.site.register(GameData)

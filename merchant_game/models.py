@@ -1,6 +1,5 @@
-from django.core import validators
 from django.db import models
-from django.db.models import Max
+from django.db.models import Max, Sum
 from django.utils import timezone
 
 
@@ -14,24 +13,22 @@ class Item(models.Model):
 
 class Player(models.Model):
     code = models.CharField(max_length=6, primary_key=True, blank=False)
-    money = models.BigIntegerField(default=1000)
 
     def __str__(self):
         return "{}".format(self.code)
-    
 
-class ItemAmount(models.Model):
-    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='items')
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    amount = models.BigIntegerField(default=0, validators=[validators.MinValueValidator(0)])
-    
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=["item", "player"], name="player_item"),
-        ]
-    
-    def __str__(self):
-        return "{}, {}={}".format(self.player.code, self.item.name, self.amount)
+    @property
+    def money(self):
+        money = 1000
+        price_sum = self.transactions.values('price').aggregate(Sum('price'))['price__sum']
+        giving_sum = self.giving_transactions.values('money').aggregate(Sum('money'))['money__sum']
+        receiving_sum = self.receiving_transactions.values('money').aggregate(Sum('money'))['money__sum']
+        loans = self.loans.values('amount').aggregate(Sum('amount'))['amount__sum']
+        money += price_sum if price_sum is not None else 0
+        money -= giving_sum if giving_sum is not None else 0
+        money += receiving_sum if receiving_sum is not None else 0
+        money += loans if loans is not None else 0
+        return money
 
 
 class City(models.Model):
@@ -101,6 +98,7 @@ class GameData(models.Model):
 class Loan(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='loans')
     round = models.ForeignKey(Round, on_delete=models.CASCADE)
+    amount = models.IntegerField(default=0, editable=False)
 
     class Meta:
         constraints = [
@@ -108,6 +106,63 @@ class Loan(models.Model):
         ]
 
     @property
-    def amount(self):
+    def get_amount(self):
         game_data = GameData.objects.last()
         return game_data.starting_loan + (self.round.number - 1) * game_data.loan_increase
+
+    def save(self, *args, **kwargs):
+        self.amount = self.get_amount
+        super(Loan, self).save(*args, **kwargs)
+
+
+class Transaction(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='transactions')
+    exchange_rate = models.ForeignKey(ItemExchangeRate, on_delete=models.CASCADE, related_name='city_transactions')
+    item_amount = models.BigIntegerField()
+    price = models.BigIntegerField(editable=False)
+
+    @property
+    def get_price(self):
+        return -1 * self.item_amount * self.rate
+
+    @property
+    def rate(self):
+        return self.exchange_rate.sell_price if self.item_amount >= 0 else self.exchange_rate.buy_price
+
+    @property
+    def item(self):
+        return self.exchange_rate.item.name
+
+    def __str__(self):
+        return "'{player}' {action} {item_amount} {item} for {price} ({rate} per {item})".format(
+            player=self.player.code,
+            action="bought" if self.item_amount >= 0 else "sold",
+            item_amount=self.item_amount,
+            item=self.item,
+            price=self.price,
+            rate=self.rate,
+        )
+    
+    def save(self, *args, **kwargs):
+        self.price = self.get_price
+        super(Transaction, self).save(*args, **kwargs)
+
+
+class PlayerTransaction(models.Model):
+    giver = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='giving_transactions')
+    taker = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='receiving_transactions')
+    money = models.BigIntegerField(default=0)
+
+    def __str__(self):
+        return "'{giver}' gave '{taker}' {money} money and {items}".format(
+            giver=self.giver.code,
+            taker=self.taker.code,
+            money=self.money,
+            items={item.item.name: item.amount for item in self.items.all()}
+        )
+
+
+class PlayerTransactionItemAmount(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    amount = models.BigIntegerField(default=0)
+    transaction = models.ForeignKey(PlayerTransaction, on_delete=models.CASCADE, related_name='items')

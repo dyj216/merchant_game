@@ -1,10 +1,11 @@
 from django.core import exceptions
+from django.db.models import Sum
 from rest_framework import serializers
 
-from .models import Player, City, ItemExchangeRate, ItemAmount, Loan, Round
+from .models import Player, City, ItemExchangeRate, Loan, Round, Transaction, PlayerTransaction, PlayerTransactionItemAmount
 
 
-class ItemsField(serializers.Field):
+class PlayerTransactionItemAmountField(serializers.Field):
     default_error_messages = {
         "non_existing_item": "Item does not exist: {item_name}",
         "negative_value": "Value is too low. Ensure it is higher than 0",
@@ -20,7 +21,7 @@ class ItemsField(serializers.Field):
         items = []
         for item_name, amount in data.items():
             try:
-                item = ItemAmount.objects.get(player=self.parent.instance, item=item_name)
+                item = PlayerTransactionItemAmount.objects.get(player=self.parent.instance, item=item_name)
             except exceptions.ObjectDoesNotExist:
                 self.fail("non_existing_item", item_name=item_name)
             if amount < 0:
@@ -30,14 +31,76 @@ class ItemsField(serializers.Field):
         return items
 
 
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = [
+            'url',
+            'player',
+            'item',
+            'item_amount',
+            'rate',
+            'price',
+            'exchange_rate'
+        ]
+
+
+class PlayerTransactionSerializer(serializers.ModelSerializer):
+    items = PlayerTransactionItemAmountField()
+
+    class Meta:
+        model = PlayerTransaction
+        fields = [
+            'url',
+            'giver',
+            'taker',
+            'money',
+            'items',
+        ]
+
+
 class PlayerSerializer(serializers.HyperlinkedModelSerializer):
-    items = ItemsField()
+    items = serializers.SerializerMethodField()
     rob = serializers.HyperlinkedIdentityField(view_name='player-rob')
     gift = serializers.HyperlinkedIdentityField(view_name='player-gift')
 
     class Meta:
         model = Player
-        fields = ['url', 'code', 'money', 'items', 'rob', 'gift', 'loans']
+        fields = [
+            'url',
+            'code',
+            'money',
+            'items',
+            'rob',
+            'gift',
+            'transactions',
+            'giving_transactions',
+            'receiving_transactions',
+            'loans',
+        ]
+
+    @staticmethod
+    def get_items(player):
+        traded_items = {
+            item['exchange_rate__item']: item['amount']
+            for item
+            in player.transactions.values('exchange_rate__item').annotate(amount=Sum('item_amount'))
+        }
+        given_items = {
+            item['items__item']: item['amount']
+            for item
+            in player.giving_transactions.values('items__item').annotate(amount=Sum('items__amount'))
+        }
+        received_items = {
+            item['items__item']: item['amount']
+            for item
+            in player.receiving_transactions.values('items__item').annotate(amount=Sum('items__amount'))
+        }
+        return {
+            key: traded_items.get(key, 0) - given_items.get(key, 0) + received_items.get(key, 0)
+            for key
+            in set(traded_items) | set(given_items) | set(received_items) if key is not None
+        }
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)

@@ -7,17 +7,17 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
 from .exceptions import InvalidRequestException
-from .models import Player, City, GameData, Loan, Round
+from .models import Player, City, GameData, Loan, Transaction, PlayerTransaction
 from .serializers import (
     PlayerSerializer,
     CitySerializer,
     CityListSerializer,
     ItemExchangeRateSerializer,
-    LoanSerializer,
+    LoanSerializer, TransactionSerializer, PlayerTransactionSerializer,
 )
 
 
-class PlayerViewSet(mixins.UpdateModelMixin, viewsets.ReadOnlyModelViewSet):
+class PlayerViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -211,6 +211,22 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
             }
         }
         return self._serialize_trade(player, data)
+
+
+class TransactionViewSet(
+    mixins.CreateModelMixin,
+    viewsets.ReadOnlyModelViewSet,
+):
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer
+
+
+class PlayerTransactionViewSet(
+    mixins.CreateModelMixin,
+    viewsets.ReadOnlyModelViewSet,
+):
+    queryset = PlayerTransaction.objects.all()
+    serializer_class = PlayerTransactionSerializer
 
 
 class LoanViewSet(
