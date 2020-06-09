@@ -1,13 +1,11 @@
-from django.core import exceptions
-from django.db.models import Sum
 from rest_framework import serializers
 
-from .models import Player, City, ItemExchangeRate, Loan, Round, Transaction, PlayerTransaction, PlayerTransactionItemAmount
+from .models import Player, City, ItemExchangeRate, Loan, Round, Transaction, PlayerTransaction, \
+    PlayerTransactionItemAmount, Item
 
 
 class PlayerTransactionItemAmountField(serializers.Field):
     default_error_messages = {
-        "non_existing_item": "Item does not exist: {item_name}",
         "negative_value": "Value is too low. Ensure it is higher than 0",
     }
 
@@ -20,13 +18,14 @@ class PlayerTransactionItemAmountField(serializers.Field):
     def to_internal_value(self, data):
         items = []
         for item_name, amount in data.items():
-            try:
-                item = PlayerTransactionItemAmount.objects.get(player=self.parent.instance, item=item_name)
-            except exceptions.ObjectDoesNotExist:
-                self.fail("non_existing_item", item_name=item_name)
             if amount < 0:
                 self.fail("negative_value")
-            item.amount = amount
+            item = PlayerTransactionItemAmount(
+                item=Item.objects.get(name=item_name),
+                transaction=self.parent.instance,
+                amount=amount,
+            )
+            item.save()
             items.append(item)
         return items
 
