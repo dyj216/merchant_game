@@ -75,7 +75,7 @@ class PlayerSerializer(serializers.HyperlinkedModelSerializer):
             'gift',
             'transactions',
             'giving_transactions',
-            'receiving_transactions',
+            'taking_transactions',
             'loans',
         ]
 

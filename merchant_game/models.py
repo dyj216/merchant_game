@@ -22,11 +22,11 @@ class Player(models.Model):
         money = 1000
         price_sum = self.transactions.values('price').aggregate(Sum('price'))['price__sum']
         giving_sum = self.giving_transactions.values('money').aggregate(Sum('money'))['money__sum']
-        receiving_sum = self.receiving_transactions.values('money').aggregate(Sum('money'))['money__sum']
+        taking_sum = self.taking_transactions.values('money').aggregate(Sum('money'))['money__sum']
         loans = self.loans.values('amount').aggregate(Sum('amount'))['amount__sum']
         money += price_sum if price_sum is not None else 0
         money -= giving_sum if giving_sum is not None else 0
-        money += receiving_sum if receiving_sum is not None else 0
+        money += taking_sum if taking_sum is not None else 0
         money += loans if loans is not None else 0
         return money
 
@@ -150,7 +150,7 @@ class Transaction(models.Model):
 
 class PlayerTransaction(models.Model):
     giver = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='giving_transactions')
-    taker = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='receiving_transactions')
+    taker = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='taking_transactions')
     money = models.BigIntegerField(default=0)
 
     def __str__(self):
