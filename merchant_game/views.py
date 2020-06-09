@@ -7,13 +7,16 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
 from .exceptions import InvalidRequestException
-from .models import Player, City, GameData, Loan, Transaction, PlayerTransaction
+from .models import Player, City, GameData, Loan, Transaction, PlayerTransaction, Item
 from .serializers import (
     PlayerSerializer,
+    PlayerListSerializer,
     CitySerializer,
     CityListSerializer,
     ItemExchangeRateSerializer,
-    LoanSerializer, TransactionSerializer, PlayerTransactionSerializer,
+    LoanSerializer,
+    TransactionSerializer,
+    PlayerTransactionSerializer,
 )
 
 
@@ -22,7 +25,12 @@ class PlayerViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PlayerSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    @action(methods=['PUT'], detail=True)
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return PlayerListSerializer
+        return super().get_serializer_class()
+
+    @action(methods=['POST'], detail=True)
     def rob(self, request, *args, **kwargs):
         robbed = self.get_object()
         robber_code = request.data.get('robber', None)
@@ -37,32 +45,48 @@ class PlayerViewSet(viewsets.ReadOnlyModelViewSet):
         except exceptions.ObjectDoesNotExist as ex:
             return Response({'error': str(ex), 'robber': robber_code}, status=status.HTTP_404_NOT_FOUND)
 
-        response_dict = {
-            'status': 'Rob successful',
-            'robber': robber.code,
-            'robbed': robbed.code
+        robbed_money = robbed.money if rob_money else 0
+        robbed_items = robbed.items if not rob_money else {}
+
+        return self._serialize_player_transaction(
+            giver=robbed,
+            taker=robber,
+            money=robbed_money,
+            items=robbed_items,
+            request=request,
+        )
+
+    @staticmethod
+    def _serialize_player_transaction(giver, taker, money, items, request):
+        data = {
+            'giver': giver.code,
+            'taker': taker.code,
+            'money': money,
+            'items': items,
         }
-        if rob_money:
-            robber.money += robbed.money
-            response_dict['money'] = robbed.money
-            robbed.money = 0
-        else:
-            response_dict['items'] = {}
-            for robbed_item in robbed.items.exclude(amount=0):
-                robber_item = robber.items.get(item=robbed_item.item.name)
-                robber_item.amount += robbed_item.amount
-                response_dict['items'][robber_item.item.name] = robbed_item.amount
-                robbed_item.amount = 0
-                robber_item.save()
-                robbed_item.save()
-        robber.save()
-        robbed.save()
+        player_transaction = PlayerTransaction(giver=giver, taker=taker, money=money)
+        player_transaction.save()
+        try:
+            player_transaction_serializer = PlayerTransactionSerializer(
+                instance=player_transaction,
+                data=data,
+                context={'request': request},
+            )
+            if player_transaction_serializer.is_valid():
+                transaction = player_transaction_serializer.save()
+                return Response({
+                    'status': 'Player transaction successful',
+                    'player_transaction': player_transaction_serializer.to_representation(transaction),
+                })
+            else:
+                return Response(player_transaction_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            player_transaction.delete()
+            return Response({'status': str(ex)})
 
-        return Response(response_dict)
-
-    @action(methods=['PUT'], detail=True)
+    @action(methods=['POST'], detail=True)
     def gift(self, request, *args, **kwargs):
-        receiver = self.get_object()
+        taker = self.get_object()
         giver_code = request.data.get('giver', None)
         given_money = request.data.get('money', None)
         given_items = request.data.get('items', None)
@@ -74,53 +98,34 @@ class PlayerViewSet(viewsets.ReadOnlyModelViewSet):
         except exceptions.ObjectDoesNotExist as ex:
             return Response({'error': str(ex), 'giver': giver_code}, status=status.HTTP_404_NOT_FOUND)
 
-        response_dict = {
-            'status': 'Gifting is successful',
-            'giver': giver.code,
-            'receiver': receiver.code
-        }
-        if given_money:
-            try:
-                self._gift_money(given_money, giver, receiver, response_dict)
-            except InvalidRequestException as ex:
-                return Response(ex.get_full_details(), status=ex.status_code)
-        if given_items:
-            try:
-                self._gift_items(given_items, giver, receiver, response_dict)
-            except InvalidRequestException as ex:
-                return Response(ex.get_full_details(), status=ex.status_code)
-            except exceptions.ObjectDoesNotExist as ex:
-                return Response({'error': str(ex)}, status=status.HTTP_404_NOT_FOUND)
+        given_money = given_money if given_money is not None else 0
+        given_items = given_items if given_items is not None else {}
 
-        return Response(response_dict)
+        try:
+            self._check_gift_validity(given_money, given_items, giver)
+        except InvalidRequestException as ex:
+            return Response(ex.get_full_details(), status=ex.status_code)
+
+        return self._serialize_player_transaction(
+            giver=giver,
+            taker=taker,
+            money=given_money,
+            items=given_items,
+            request=request,
+        )
 
     @staticmethod
-    def _gift_money(given_money, giver, receiver, response_dict):
+    def _check_gift_validity(given_money, given_items, giver):
         if given_money < 0:
             raise InvalidRequestException("money shouldn't be lower than 0")
         if given_money > giver.money:
             raise InvalidRequestException("given money should be not higher than the giver's money")
-        receiver.money += given_money
-        giver.money -= given_money
-        receiver.save()
-        giver.save()
-        response_dict['money'] = given_money
-
-    @staticmethod
-    def _gift_items(given_items, giver, receiver, response_dict):
         if not isinstance(given_items, dict):
             raise InvalidRequestException("items should be a dictionary of item names and amounts")
-        response_dict['items'] = {}
         for item_name, given_amount in given_items.items():
-            giver_item = giver.items.get(item=item_name)
-            receiver_item = receiver.items.get(item=item_name)
-            if given_amount > giver_item.amount:
+            giver_item_amount = giver.items.get(item_name)
+            if given_amount > giver_item_amount:
                 raise InvalidRequestException("given item amount should not be higher than giver's item amount")
-            receiver_item.amount += given_amount
-            giver_item.amount -= given_amount
-            receiver_item.save()
-            giver_item.save()
-            response_dict['items'][item_name] = given_amount
 
 
 class CityViewSet(viewsets.ReadOnlyModelViewSet):
@@ -159,19 +164,24 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         return player, rate, item_name, amount
 
     @staticmethod
-    def _serialize_trade(player, data):
-        player_serializer = PlayerSerializer(instance=player, data=data)
-        if player_serializer.is_valid():
-            player_serializer.save()
+    def _serialize_trade(player, amount, rate, request):
+        data = {
+            'player': player,
+            'item_amount': amount,
+            'exchange_rate': rate.id,
+        }
+        transaction_serializer = TransactionSerializer(data=data, context={"request": request})
+        if transaction_serializer.is_valid():
+            transaction = transaction_serializer.save()
             return Response({
                 'status': 'Trade successful',
-                'player': data
+                'transaction': transaction_serializer.to_representation(transaction),
             })
         else:
-            return Response(player_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(transaction_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(methods=['PUT'], detail=True)
-    def sell(self, request, *args, **kwargs):
+    @action(methods=['POST'], detail=True)
+    def buy(self, request, *args, **kwargs):
         try:
             player, rate, item_name, amount = self._validate_trade_data(request)
         except InvalidRequestException as ex:
@@ -182,17 +192,10 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         new_money = player.money - rate.sell_price * amount
         if new_money < 0:
             return Response({'error': 'Not enough money'}, status=status.HTTP_400_BAD_REQUEST)
-        data = {
-            'code': player.code,
-            'money': new_money,
-            'items': {
-                item_name: player.items.get(item=item_name).amount + amount,
-            }
-        }
-        return self._serialize_trade(player, data)
+        return self._serialize_trade(player, amount, rate, request)
 
-    @action(methods=['PUT'], detail=True)
-    def buy(self, request, *args, **kwargs):
+    @action(methods=['POST'], detail=True)
+    def sell(self, request, *args, **kwargs):
         try:
             player, rate, item_name, amount = self._validate_trade_data(request)
         except InvalidRequestException as ex:
@@ -200,17 +203,10 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         except exceptions.ObjectDoesNotExist as ex:
             return Response({'error': str(ex)}, status=status.HTTP_404_NOT_FOUND)
 
-        new_item_amount = player.items.get(item=item_name).amount - amount
+        new_item_amount = player.items.get(item_name, 0) - amount
         if new_item_amount < 0:
             return Response({'error': 'Not enough item'}, status=status.HTTP_400_BAD_REQUEST)
-        data = {
-            'code': player.code,
-            'money': player.money + rate.buy_price * amount,
-            'items': {
-                item_name: new_item_amount,
-            }
-        }
-        return self._serialize_trade(player, data)
+        return self._serialize_trade(player, -1 * amount, rate, request)
 
 
 class TransactionViewSet(
@@ -257,20 +253,31 @@ class LoanViewSet(
 @permission_classes((permissions.AllowAny, ))
 class End(APIView):
     def get(self, request, format=None):
-        return Response("Send a POST request to finish the game.")
-
-    def post(self, request, format=None):
+        final_prices = {item.name: item.ending_price for item in Item.objects.all()}
+        result = {"final_prices": final_prices}
+        game_data = GameData.objects.last()
         players = Player.objects.all()
         for player in players:
-            for item in player.items.all():
-                player.money += item.item.ending_price * item.amount
-                item.amount = 0
-                item.save()
-            player.save()
-        loans = Loan.objects.all()
-        for loan in loans:
-            loan.delete()
-        return Response("Every players items are converted to money and repay loans.")
+            result[player.code] = {}
+            result[player.code]['money'] = player.money
+            result[player.code]['final_money'] = player.money
+            result[player.code]['items'] = {}
+            for item_name, amount in player.items.items():
+                result[player.code]['items'][item_name] = {
+                    'amount': amount,
+                    'value': final_prices[item_name] * amount
+                }
+                result[player.code]['final_money'] += result[player.code]['items'][item_name]['value']
+            result[player.code]['loans'] = {}
+            for loan in player.loans.all():
+                result[player.code]['loans'][loan.round.number] = {
+                    "loan_amount": loan.amount,
+                    "payback_amount": loan.amount + (
+                        (game_data.current_round - loan.round.number) * int(loan.amount * game_data.loan_interest/100)
+                    )
+                }
+                result[player.code]['final_money'] -= result[player.code]['loans'][loan.round.number]['payback_amount']
+        return Response(data=result)
 
 
 @api_view(['GET'])
