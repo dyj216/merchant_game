@@ -30,6 +30,29 @@ class Player(models.Model):
         money += loans if loans is not None else 0
         return money
 
+    @property
+    def items(self):
+        traded_items = {
+            item['exchange_rate__item']: item['amount']
+            for item
+            in self.transactions.values('exchange_rate__item').annotate(amount=Sum('item_amount'))
+        }
+        given_items = {
+            item['items__item']: item['amount']
+            for item
+            in self.giving_transactions.values('items__item').annotate(amount=Sum('items__amount'))
+        }
+        received_items = {
+            item['items__item']: item['amount']
+            for item
+            in self.taking_transactions.values('items__item').annotate(amount=Sum('items__amount'))
+        }
+        return {
+            key: traded_items.get(key, 0) - given_items.get(key, 0) + received_items.get(key, 0)
+            for key
+            in set(traded_items) | set(given_items) | set(received_items) if key is not None
+        }
+
 
 class City(models.Model):
     name = models.CharField(max_length=20, primary_key=True)
