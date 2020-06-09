@@ -79,12 +79,15 @@ class PlayerSerializer(serializers.HyperlinkedModelSerializer):
         ]
 
 
-    def update(self, instance, validated_data):
-        super().update(instance, validated_data)
-        items = validated_data.get("items", [])
-        for item in items:
-            item.save()
-        return instance
+class PlayerListSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Player
+        fields = [
+            'url',
+            'code',
+            'money',
+            'items',
+        ]
 
 
 class ItemExchangeRateSerializer(serializers.ModelSerializer):
