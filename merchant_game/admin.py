@@ -6,6 +6,7 @@ from .models import (
     Player,
     GameData,
     Loan,
+    LoanPayback,
     Round,
     ItemExchangeRate,
     Transaction,
@@ -79,4 +80,5 @@ class PlayerTransactionAdmin(admin.ModelAdmin):
 admin.site.register(Item)
 admin.site.register(GameData)
 admin.site.register(Loan)
+admin.site.register(LoanPayback)
 admin.site.register(Round)

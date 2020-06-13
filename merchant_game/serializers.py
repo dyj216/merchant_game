@@ -1,7 +1,28 @@
 from rest_framework import serializers
 
 from .models import Player, City, ItemExchangeRate, Loan, Round, Transaction, PlayerTransaction, \
-    PlayerTransactionItemAmount, Item
+    PlayerTransactionItemAmount, Item, LoanPayback
+
+
+class LoanSerializer(serializers.ModelSerializer):
+    pay_back_loan = serializers.HyperlinkedIdentityField(view_name='loan-pay-back-loan')
+
+    class Meta:
+        model = Loan
+        fields = ['url', 'player', 'round', 'amount', 'payback', 'pay_back_loan']
+        depth = 1
+
+    def validate(self, attrs):
+        if len(Loan.objects.filter(player=attrs['player'], round=attrs['round'])):
+            raise serializers.ValidationError("The player has already took a loan in the given round")
+        return attrs
+
+
+class LoanPaybackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LoanPayback
+        fields = ['url', 'loan', 'payback_amount', 'round']
+        depth = 1
 
 
 class PlayerTransactionItemAmountField(serializers.Field):
@@ -61,6 +82,7 @@ class PlayerTransactionSerializer(serializers.ModelSerializer):
 class PlayerSerializer(serializers.HyperlinkedModelSerializer):
     rob = serializers.HyperlinkedIdentityField(view_name='player-rob')
     gift = serializers.HyperlinkedIdentityField(view_name='player-gift')
+    paybacks = serializers.SerializerMethodField()
 
     class Meta:
         model = Player
@@ -75,7 +97,15 @@ class PlayerSerializer(serializers.HyperlinkedModelSerializer):
             'giving_transactions',
             'taking_transactions',
             'loans',
+            'paybacks',
         ]
+
+    def get_paybacks(self, instance):
+        paybacks = []
+        for loan in instance.loans.all():
+            if hasattr(loan, 'payback'):
+                paybacks.append(LoanPaybackSerializer(context=self.context).to_representation(loan.payback)['url'])
+        return paybacks
 
 
 class PlayerListSerializer(serializers.HyperlinkedModelSerializer):
@@ -115,15 +145,3 @@ class CityListSerializer(serializers.HyperlinkedModelSerializer):
 class RoundSerializer(serializers.ModelSerializer):
     class Meta:
         model = Round
-
-
-class LoanSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Loan
-        fields = ['url', 'player', 'round', 'amount']
-        depth = 0
-
-    def validate(self, attrs):
-        if len(Loan.objects.filter(player=attrs['player'], round=attrs['round'])):
-            raise serializers.ValidationError("The player has already took a loan in the given round")
-        return attrs

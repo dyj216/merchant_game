@@ -9,6 +9,7 @@ router = DefaultRouter()
 router.register(r'players', views.PlayerViewSet)
 router.register(r'cities', views.CityViewSet)
 router.register(r'loans', views.LoanViewSet)
+router.register(r'loan-paybacks', views.LoanPaybackViewSet)
 router.register(r'transactions', views.TransactionViewSet)
 router.register(r'player-transactions', views.PlayerTransactionViewSet)
 

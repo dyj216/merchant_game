@@ -24,10 +24,12 @@ class Player(models.Model):
         giving_sum = self.giving_transactions.values('money').aggregate(Sum('money'))['money__sum']
         taking_sum = self.taking_transactions.values('money').aggregate(Sum('money'))['money__sum']
         loans = self.loans.values('amount').aggregate(Sum('amount'))['amount__sum']
+        loan_paybacks = sum([loan.payback.payback_amount for loan in self.loans.all() if hasattr(loan, 'payback')])
         money += price_sum if price_sum is not None else 0
         money -= giving_sum if giving_sum is not None else 0
         money += taking_sum if taking_sum is not None else 0
         money += loans if loans is not None else 0
+        money -= loan_paybacks
         return money
 
     @property
@@ -136,6 +138,21 @@ class Loan(models.Model):
     def save(self, *args, **kwargs):
         self.amount = self.get_amount
         super(Loan, self).save(*args, **kwargs)
+
+
+class LoanPayback(models.Model):
+    loan = models.OneToOneField(Loan, on_delete=models.CASCADE, related_name='payback')
+    payback_amount = models.IntegerField(default=0, editable=False)
+    round = models.ForeignKey(Round, on_delete=models.CASCADE, editable=None)
+
+    def save(self, *args, **kwargs):
+        game_data = GameData.objects.last()
+        self.round = Round.objects.get(number=game_data.current_round)
+        self.payback_amount = (
+                self.loan.amount +
+                (self.round.number - self.loan.round.number) * int(self.loan.amount * game_data.loan_interest / 100)
+        )
+        super(LoanPayback, self).save(*args, **kwargs)
 
 
 class Transaction(models.Model):

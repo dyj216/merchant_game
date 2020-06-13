@@ -1,4 +1,5 @@
 from django.core import exceptions
+from django.db import IntegrityError
 from django.shortcuts import render
 from rest_framework import permissions, viewsets, mixins, status
 from rest_framework.decorators import api_view, permission_classes, action
@@ -7,7 +8,7 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
 from .exceptions import InvalidRequestException
-from .models import Player, City, GameData, Loan, Transaction, PlayerTransaction, Item
+from .models import Player, City, GameData, Loan, Transaction, PlayerTransaction, Item, LoanPayback
 from .serializers import (
     PlayerSerializer,
     PlayerListSerializer,
@@ -16,7 +17,7 @@ from .serializers import (
     ItemExchangeRateSerializer,
     LoanSerializer,
     TransactionSerializer,
-    PlayerTransactionSerializer,
+    PlayerTransactionSerializer, LoanPaybackSerializer,
 )
 
 
@@ -227,31 +228,45 @@ class PlayerTransactionViewSet(
 
 class LoanViewSet(
     mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
     viewsets.ReadOnlyModelViewSet
 ):
     queryset = Loan.objects.all()
     serializer_class = LoanSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def perform_create(self, serializer):
-        instance = serializer.save()
-        instance.player.money += instance.amount
-        instance.player.save()
+    @action(methods=['POST'], detail=True)
+    def pay_back_loan(self, request, *args, **kwargs):
+        loan = self.get_object()
+        payback = LoanPayback(loan=loan)
+        if loan.player.money - payback.payback_amount < 0:
+            return Response({'error': 'Not enough money'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            payback.save()
+        except IntegrityError:
+            return Response({'error': 'This loan has been already repaid!'}, status=status.HTTP_409_CONFLICT)
+        LoanPaybackSerializer(context={'request': request}).to_representation(payback)
+        return Response(LoanPaybackSerializer(context={'request': request}).to_representation(payback))
 
-    def perform_destroy(self, instance):
-        game_data = GameData.objects.last()
-        instance.player.money -= (
-            instance.amount + (
-                (game_data.current_round - instance.round.number) * int(instance.amount * game_data.loan_interest/100)
-            )
-        )
-        instance.player.save()
-        instance.delete()
+
+class LoanPaybackViewSet(
+    mixins.CreateModelMixin,
+    viewsets.ReadOnlyModelViewSet,
+):
+    queryset = LoanPayback.objects.all()
+    serializer_class = LoanPaybackSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
 @permission_classes((permissions.AllowAny, ))
 class End(APIView):
+    def post(self, request, format=None):
+        players = Player.objects.all()
+        for player in players:
+            for loan in player.loans.all():
+                payback = LoanPayback(loan=loan)
+                payback.save()
+        return self.get(request, format)
+
     def get(self, request, format=None):
         final_prices = {item.name: item.ending_price for item in Item.objects.all()}
         result = {"final_prices": final_prices}
@@ -269,14 +284,23 @@ class End(APIView):
                 }
                 result[player.code]['final_money'] += result[player.code]['items'][item_name]['value']
             result[player.code]['loans'] = {}
+            result[player.code]['paybacks'] = {}
             for loan in player.loans.all():
                 result[player.code]['loans'][loan.round.number] = {
                     "loan_amount": loan.amount,
-                    "payback_amount": loan.amount + (
-                        (game_data.current_round - loan.round.number) * int(loan.amount * game_data.loan_interest/100)
-                    )
                 }
-                result[player.code]['final_money'] -= result[player.code]['loans'][loan.round.number]['payback_amount']
+                if hasattr(loan, 'payback'):
+                    result[player.code]['paybacks'][loan.round.number] = {
+                        "payback_amount": loan.payback.payback_amount,
+                    }
+                    result[player.code]['loans'][loan.round.number]['paid_back'] = True
+                else:
+                    result[player.code]['loans'][loan.round.number]['paid_back'] = False
+                    result[player.code]['loans'][loan.round.number]['payback_amount'] = loan.amount + (
+                            (game_data.current_round - loan.round.number) * int(
+                        loan.amount * game_data.loan_interest / 100)
+                    )
+                    result[player.code]['final_money'] -= result[player.code]['loans'][loan.round.number]['payback_amount']
         return Response(data=result)
 
 
