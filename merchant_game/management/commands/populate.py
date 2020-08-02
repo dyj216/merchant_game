@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from merchant_game.models import City, CityStock, Item, Round
 
 STOCK_DATA = {
-    'Budapest': {
+    'Athén': {
         1: ((25, 18), (20, 15), (20, 15), (10, 8), (12, 9), (5, 4)),
         2: ((None, 24), (20, 18), (None, 20), (12, 11), (16, 15), (7, 6)),
         3: ((12, 12), (12, None), (15, 14), (None, 16), (13, 12), (6, 6)),
@@ -10,7 +10,7 @@ STOCK_DATA = {
         5: ((17, 15), (None, 17), (12, 11), (17, 14), (15, 14), (10, None)),
         6: ((22, 21), (23, 22), (20, 18), (16, 15), (16, 15), (11, 10)),
     },
-    'Szeged': {
+    'Spárta': {
         1: ((15, 10), (None, 20), (14, None), (10, 9), (18, 12), (None, 6)),
         2: ((15, 12), (20, 18), (15, 13), (None, 12), (9, None), (6, 6)),
         3: ((19, 18), (15, 14), (None, 21), (15, 14), (14, 12), (8, 7)),
@@ -18,7 +18,7 @@ STOCK_DATA = {
         5: ((None, None), (14, 12), (13, 12), (12, 10), (15, 13), (11, 11)),
         6: ((18, 17), (22, 22), (17, 16), (13, 12), (17, 16), (14, 13)),
     },
-    'Debrecen': {
+    'Knosszosz': {
         1: ((20, 19), (15, None), (None, 20), (8, None), (16, 14), (5, 3)),
         2: ((18, 17), (12, None), (9, None), (10, 9), (9, None), (4, 3)),
         3: ((None, 22), (14, 13), (17, 16), (12, 10), (10, 9), (7, 6)),
@@ -26,7 +26,7 @@ STOCK_DATA = {
         5: ((13, 12), (19, 17), (15, 13), (14, 13), (14, 12), (None, None)),
         6: ((15, 12), (16, 15), (19, 18), (16, 15), (14, 14), (13, 12)),
     },
-    'Sopron': {
+    'Mükéné': {
         1: ((None, 19), (None, 16), (25, 19), (None, 10), (25, 20), (4, 3)),
         2: ((20, 18), (24, 23), (None, 18), (17, 16), (14, 13), (None, None)),
         3: ((16, 14), (16, 15), (18, 16), (15, 14), (21, 19), (None, 9)),
@@ -34,7 +34,7 @@ STOCK_DATA = {
         5: ((17, 16), (15, None), (10, None), (16, 16), (12, 12), (13, 12)),
         6: ((19, 16), (17, 16), (20, 20), (15, 15), (17, 16), (12, 11)),
     },
-    'Eger': {
+    'Korintosz': {
         1: ((None, None), (10, 10), (30, 21), (14, 12), (14, 12), (4, None)),
         2: ((None, 22), (14, 13), (19, 17), (11, 10), (None, 16), (None, 8)),
         3: ((16, 13), (None, 22), (14, 11), (8, 7), (11, 10), (5, 4)),
@@ -53,14 +53,14 @@ class Command(BaseCommand):
         Item.objects.all().delete()
         Round.objects.all().delete()
         CityStock.objects.all().delete()
-        for city_name in ['Budapest', 'Szeged', 'Debrecen', 'Sopron', 'Eger']:
+        for city_name in ['Athén', 'Spárta', 'Knosszosz', 'Mükéné', 'Korintosz']:
             city = City(name=city_name)
             city.save()
-        for item_name in ['mercury', 'sulfur', 'crystal', 'gem', 'ore', 'wood']:
+        for item_name in ['bárány', 'márvány', 'cédrus', 'bor', 'arany', 'cserépedény']:
             item = Item(name=item_name)
             item.save()
         for i in range(1, 7):
-            r = Round()
+            r = Round(number=i)
             r.save()
         for city in City.objects.all():
             for r in Round.objects.order_by('number'):
