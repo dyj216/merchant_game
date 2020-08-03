@@ -71,7 +71,7 @@ def lend(request):
         6: 1000,
     }
     loan = Loan(player=player, round=round_data["round"], amount=amount_mapping[round_data["round"]])
-    player.money += 1000
+    player.money += amount_mapping[round_data["round"]]
     player.save()
     loan.save()
     return HttpResponseRedirect(reverse('merchant_game:loaning'))
@@ -81,7 +81,8 @@ def lend(request):
 def paying_back(request):
     loans = Loan.objects.all()
     return render(request, 'merchant_game/paying_back.html', context={
-        'loans': loans
+        'loans': loans,
+        'round_data': _get_round_data(),
     })
 
 
@@ -98,7 +99,9 @@ def payback(request):
 
 @login_required(login_url='/admin/login/')
 def ending(request):
-    return render(request, 'merchant_game/ending.html')
+    return render(request, 'merchant_game/ending.html', context={
+        'round_data': _get_round_data(),
+    })
 
 
 ENDING_MAPPING = [
@@ -177,7 +180,7 @@ def trade(request, city):
         'item_6': city_stock.item_6_sell_price,
     }
     if exchange == 'buy':
-        total_price = buy_prices[valuable] * item_amount
+        total_price = sell_prices[valuable] * item_amount
         if total_price > player.money:
             return render(request, 'merchant_game/trading.html', context={
                 'city': city,
@@ -195,7 +198,7 @@ def trade(request, city):
                 'error_message': 'Nincs ennyi terméked!',
                 'round_data': _get_round_data(),
             })
-        total_price = sell_prices[valuable] * item_amount
+        total_price = buy_prices[valuable] * item_amount
         player.money += total_price
         setattr(player, '{}_amount'.format(valuable), player_item_mapping[valuable] - item_amount)
     player.save()
