@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from merchant_game.models import City, ItemExchangeRate, Item, Round
 
 STOCK_DATA = {
@@ -259,10 +259,9 @@ class Command(BaseCommand):
     help = "Populates the database with some basic data. Removes pre-existing data"
 
     def handle(self, *args, **options):
+        ItemExchangeRate.objects.all().delete()
         City.objects.all().delete()
         Item.objects.all().delete()
-        Round.objects.all().delete()
-        ItemExchangeRate.objects.all().delete()
         for city_name in ["Budapest", "Szeged", "Debrecen", "Sopron", "Eger"]:
             city = City(name=city_name)
             city.save()
@@ -272,9 +271,10 @@ class Command(BaseCommand):
         ):
             item = Item(name=item_name, ending_price=ending_price)
             item.save()
-        for i in range(1, 7):
-            r = Round()
-            r.save()
+        if Round.objects.all().count() == 0:
+            for i in range(1, 7):
+                r = Round()
+                r.save()
         for city in City.objects.all():
             for r in Round.objects.order_by("number"):
                 for item in Item.objects.all():
