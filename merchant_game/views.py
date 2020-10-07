@@ -190,7 +190,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         except exceptions.ObjectDoesNotExist as ex:
             return Response({'error': str(ex)}, status=status.HTTP_404_NOT_FOUND)
 
-        new_money = player.money - rate.sell_price * amount
+        new_money = player.money - rate.buy_price * amount
         if new_money < 0:
             return Response({'error': 'Not enough money'}, status=status.HTTP_400_BAD_REQUEST)
         return self._serialize_trade(player, amount, rate, request)
