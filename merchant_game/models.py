@@ -167,7 +167,7 @@ class Transaction(models.Model):
 
     @property
     def rate(self):
-        return self.exchange_rate.sell_price if self.item_amount >= 0 else self.exchange_rate.buy_price
+        return self.exchange_rate.buy_price if self.item_amount >= 0 else self.exchange_rate.sell_price
 
     @property
     def item(self):
