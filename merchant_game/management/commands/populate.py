@@ -282,8 +282,8 @@ class Command(BaseCommand):
                         city=city,
                         round=r,
                         item=item,
-                        sell_price=STOCK_DATA[city.name][r.number][item.name][0],
-                        buy_price=STOCK_DATA[city.name][r.number][item.name][1],
+                        buy_price=STOCK_DATA[city.name][r.number][item.name][0],
+                        sell_price=STOCK_DATA[city.name][r.number][item.name][1],
                     )
                     ier.save()
 
