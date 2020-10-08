@@ -33,18 +33,18 @@ class PlayerViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(methods=['POST'], detail=True)
     def rob(self, request, *args, **kwargs):
-        robbed = self.get_object()
-        robber_code = request.data.get('robber', None)
+        robber = self.get_object()
+        robbed_code = request.data.get('robbed', None)
         rob_money = request.data.get('rob_money', True)
 
-        if robber_code is None:
-            raise InvalidRequestException("robber is required")
+        if robbed_code is None:
+            raise InvalidRequestException("robbed is required")
         if not isinstance(rob_money, bool):
             raise InvalidRequestException("rob_money should be a boolean")
         try:
-            robber = Player.objects.get(code=robber_code)
+            robbed = Player.objects.get(code=robbed_code)
         except exceptions.ObjectDoesNotExist as ex:
-            return Response({'error': str(ex), 'robber': robber_code}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': str(ex), 'robbed': robbed_code}, status=status.HTTP_404_NOT_FOUND)
 
         robbed_money = robbed.money if rob_money else 0
         robbed_items = robbed.items if not rob_money else {}
@@ -87,17 +87,17 @@ class PlayerViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(methods=['POST'], detail=True)
     def gift(self, request, *args, **kwargs):
-        taker = self.get_object()
-        giver_code = request.data.get('giver', None)
+        giver = self.get_object()
+        taker_code = request.data.get('taker', None)
         given_money = request.data.get('money', None)
         given_items = request.data.get('items', None)
 
-        if giver_code is None or (given_money is None and given_items is None):
-            return Response("giver and money or items are required", status=status.HTTP_400_BAD_REQUEST)
+        if taker_code is None or (given_money is None and given_items is None):
+            return Response("taker and money or items are required", status=status.HTTP_400_BAD_REQUEST)
         try:
-            giver = Player.objects.get(code=giver_code)
+            taker = Player.objects.get(code=taker_code)
         except exceptions.ObjectDoesNotExist as ex:
-            return Response({'error': str(ex), 'giver': giver_code}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': str(ex), 'taker': taker_code}, status=status.HTTP_404_NOT_FOUND)
 
         given_money = given_money if given_money is not None else 0
         given_items = given_items if given_items is not None else {}
