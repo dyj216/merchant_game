@@ -232,7 +232,7 @@ class LoanViewSet(
 ):
     queryset = Loan.objects.all()
     serializer_class = LoanSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     @action(methods=['POST'], detail=True)
     def pay_back_loan(self, request, *args, **kwargs):
