@@ -10,7 +10,7 @@ class LoanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Loan
         fields = ['url', 'player', 'round', 'amount', 'payback', 'pay_back_loan']
-        depth = 1
+        read_only_fields = ['payback']
 
     def validate(self, attrs):
         if len(Loan.objects.filter(player=attrs['player'], round=attrs['round'])):
