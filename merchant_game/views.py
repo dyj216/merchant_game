@@ -66,7 +66,6 @@ class PlayerViewSet(viewsets.ReadOnlyModelViewSet):
             'items': items,
         }
         player_transaction = PlayerTransaction(giver=giver, taker=taker, money=money)
-        player_transaction.save()
         try:
             player_transaction_serializer = PlayerTransactionSerializer(
                 instance=player_transaction,
