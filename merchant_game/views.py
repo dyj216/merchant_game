@@ -253,7 +253,7 @@ class LoanPaybackViewSet(
 ):
     queryset = LoanPayback.objects.all()
     serializer_class = LoanPaybackSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
 
 @permission_classes((permissions.AllowAny, ))
