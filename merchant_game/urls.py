@@ -12,6 +12,7 @@ router.register(r'loans', views.LoanViewSet)
 router.register(r'loan-paybacks', views.LoanPaybackViewSet)
 router.register(r'transactions', views.TransactionViewSet)
 router.register(r'player-transactions', views.PlayerTransactionViewSet)
+router.register(r'game-data', views.GameDataViewSet)
 
 urlpatterns = [
     path('', views.index, name='index'),

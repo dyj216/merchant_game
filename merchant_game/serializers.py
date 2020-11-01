@@ -1,7 +1,18 @@
 from rest_framework import serializers
 
-from .models import Player, City, ItemExchangeRate, Loan, Round, Transaction, PlayerTransaction, \
-    PlayerTransactionItemAmount, Item, LoanPayback
+from .models import (
+    Player,
+    City,
+    ItemExchangeRate,
+    Loan,
+    Round,
+    Transaction,
+    PlayerTransaction,
+    PlayerTransactionItemAmount,
+    Item,
+    LoanPayback,
+    GameData,
+)
 
 
 class LoanSerializer(serializers.ModelSerializer):
@@ -145,3 +156,17 @@ class CityListSerializer(serializers.HyperlinkedModelSerializer):
 class RoundSerializer(serializers.ModelSerializer):
     class Meta:
         model = Round
+
+
+class GameDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GameData
+        fields = [
+            "starting_time",
+            "round_duration",
+            "starting_loan",
+            "loan_increase",
+            "loan_interest",
+            "current_round",
+            "last_round",
+        ]

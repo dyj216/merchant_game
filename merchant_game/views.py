@@ -17,7 +17,9 @@ from .serializers import (
     ItemExchangeRateSerializer,
     LoanSerializer,
     TransactionSerializer,
-    PlayerTransactionSerializer, LoanPaybackSerializer,
+    PlayerTransactionSerializer,
+    LoanPaybackSerializer,
+    GameDataSerializer,
 )
 
 
@@ -256,6 +258,14 @@ class LoanPaybackViewSet(
     permission_classes = [permissions.AllowAny]
 
 
+class GameDataViewSet(
+    viewsets.ReadOnlyModelViewSet,
+):
+    queryset = GameData.objects.all()
+    serializer_class = GameDataSerializer
+    permission_classes = [permissions.AllowAny]
+
+
 @permission_classes((permissions.AllowAny, ))
 class End(APIView):
     def post(self, request, format=None):
@@ -297,7 +307,7 @@ class End(APIView):
                     result[player.code]['loans'][loan.round.number]['paid_back'] = False
                     result[player.code]['loans'][loan.round.number]['payback_amount'] = loan.amount + (
                             (game_data.current_round - loan.round.number) * int(
-                        loan.amount * game_data.loan_interest / 100)
+                                loan.amount * game_data.loan_interest / 100)
                     )
                     result[player.code]['final_money'] -= result[player.code]['loans'][loan.round.number]['payback_amount']
         return Response(data=result)
