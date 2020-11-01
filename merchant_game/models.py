@@ -111,13 +111,27 @@ class GameData(models.Model):
 
     @property
     def current_round(self):
-        now = timezone.now()
-        elapsed_time = int((now - self.starting_time).total_seconds())
         return (
-            int(elapsed_time / (self.round_duration * 60)) + 1
-            if elapsed_time <= self.round_duration * self.last_round * 60
+            int(self._elapsed_time / self._round_duration_in_seconds) + 1
+            if self._elapsed_time <= self.last_round * self._round_duration_in_seconds
             else self.last_round
         )
+
+    @property
+    def round_remaining_seconds(self):
+        return (
+            self._round_duration_in_seconds - (
+                self._elapsed_time - self._round_duration_in_seconds * (self.current_round - 1)
+            )
+        )
+
+    @property
+    def _elapsed_time(self):
+        return (timezone.now() - self.starting_time).seconds
+
+    @property
+    def _round_duration_in_seconds(self):
+        return self.round_duration * 60
 
 
 class Loan(models.Model):

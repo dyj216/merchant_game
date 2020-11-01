@@ -169,4 +169,5 @@ class GameDataSerializer(serializers.ModelSerializer):
             "loan_interest",
             "current_round",
             "last_round",
+            "round_remaining_seconds",
         ]
