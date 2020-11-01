@@ -6,7 +6,7 @@ from django.utils import timezone
 class Item(models.Model):
     name = models.CharField(max_length=20, primary_key=True)
     ending_price = models.IntegerField(default=10)
-    
+
     def __str__(self):
         return "{}".format(self.name)
 
@@ -58,7 +58,7 @@ class Player(models.Model):
 
 class City(models.Model):
     name = models.CharField(max_length=20, primary_key=True)
-    
+
     class Meta:
         verbose_name_plural = "Cities"
 
@@ -68,7 +68,7 @@ class City(models.Model):
 
 class Round(models.Model):
     number = models.AutoField(primary_key=True)
-    
+
     def __str__(self):
         return "Round {}".format(self.number)
 
@@ -79,12 +79,12 @@ class ItemExchangeRate(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     buy_price = models.IntegerField(blank=True, null=True)
     sell_price = models.IntegerField(blank=True, null=True)
-    
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["item", "city", "round"], name="city_item_exchange")
         ]
-        
+
     def __str__(self):
         return (
             "{city}, round: {round}, "
@@ -114,8 +114,8 @@ class GameData(models.Model):
         now = timezone.now()
         elapsed_time = int((now - self.starting_time).total_seconds())
         return (
-            int(elapsed_time / self.round_duration) + 1
-            if elapsed_time <= self.round_duration * self.last_round
+            int(elapsed_time / (self.round_duration * 60)) + 1
+            if elapsed_time <= self.round_duration * self.last_round * 60
             else self.last_round
         )
 
@@ -182,7 +182,7 @@ class Transaction(models.Model):
             price=self.price,
             rate=self.rate,
         )
-    
+
     def save(self, *args, **kwargs):
         self.price = self.get_price
         super(Transaction, self).save(*args, **kwargs)
