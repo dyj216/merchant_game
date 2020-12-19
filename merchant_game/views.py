@@ -26,7 +26,7 @@ from .serializers import (
 class PlayerViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -133,7 +133,7 @@ class PlayerViewSet(viewsets.ReadOnlyModelViewSet):
 class CityViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = City.objects.all()
     serializer_class = CitySerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -233,7 +233,7 @@ class LoanViewSet(
 ):
     queryset = Loan.objects.all()
     serializer_class = LoanSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAdminUser]
 
     @action(methods=['POST'], detail=True)
     def pay_back_loan(self, request, *args, **kwargs):
@@ -266,7 +266,7 @@ class GameDataViewSet(
     permission_classes = [permissions.AllowAny]
 
 
-@permission_classes((permissions.AllowAny, ))
+@permission_classes((permissions.IsAdminUser, ))
 class End(APIView):
     def post(self, request, format=None):
         players = Player.objects.all()
@@ -314,7 +314,7 @@ class End(APIView):
 
 
 @api_view(['GET'])
-@permission_classes((permissions.AllowAny, ))
+@permission_classes((permissions.IsAuthenticated, ))
 def api_root(request, format=None):
     return Response({
         'players': reverse('player-list', request=request, format=format),
