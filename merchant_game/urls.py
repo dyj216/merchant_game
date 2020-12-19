@@ -1,6 +1,7 @@
 from django.conf.urls import url
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from django.views.generic.base import TemplateView
 
 from . import views
 
@@ -18,5 +19,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('api/', views.api_root, name='api'),
     path('api/end', views.End.as_view(), name='end'),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     url(r'^api/', include(router.urls)),
 ]
