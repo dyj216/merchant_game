@@ -127,7 +127,7 @@ class GameData(models.Model):
 
     @property
     def _elapsed_time(self):
-        return (timezone.now() - self.starting_time).seconds
+        return (timezone.now() - self.starting_time).total_seconds()
 
     @property
     def _round_duration_in_seconds(self):
