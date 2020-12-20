@@ -324,5 +324,13 @@ def api_root(request, format=None):
     })
 
 
+@api_view(['GET'])
+@permission_classes((permissions.AllowAny,))
+def api_check(request, format=None):
+    return Response({
+        'api_root': reverse('api', request=request, format=format),
+    })
+
+
 def index(request):
     return render(request, 'merchant_game/index.html')

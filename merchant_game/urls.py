@@ -18,7 +18,8 @@ router.register(r'game-data', views.GameDataViewSet)
 urlpatterns = [
     path('', views.index, name='index'),
     path('api/', views.api_root, name='api'),
-    path('api/end', views.End.as_view(), name='end'),
+    path('api/check/', views.api_check, name='api-check'),
+    path('api/end/', views.End.as_view(), name='end'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     url(r'^api/', include(router.urls)),
