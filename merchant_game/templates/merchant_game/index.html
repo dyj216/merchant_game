@@ -17,9 +17,8 @@
 </head>
 <body>
     <ul>
-        <li><a href="{% url 'player-list' %}">Játékosok</a></li>
-        <li><a href="{% url 'city-list' %}">Városok</a></li>
-        <li><a href="{% url 'loan-list' %}">Bank</a></li>
+        <li><a href="{{ client_url }}/?api-root={{ server_api_url|urlencode:'' }}">Angular UI</a></li>
+        <li><a href="{% url 'api' %}">API</a></li>
     </ul>
 </body>
 </html>
