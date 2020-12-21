@@ -154,8 +154,7 @@ DATABASES['default'].update(db_from_env)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:4200",
-    "http://127.0.0.1:4200",
+    MERCHANT_GAME_CLIENT_ADDRESS,
 ]
 
 SIMPLE_JWT = {
