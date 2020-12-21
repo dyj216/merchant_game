@@ -25,6 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECRET_KEY = '#k$kgkzff)cc0d!@pn5^2jf*ak+zqjef4@86dgyu_^i-!-m+hj'
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '#k$kgkzff)cc0d!@pn5^2jf*ak+zqjef4@86dgyu_^i-!-m+hj')
 MERCHANT_GAME_CLIENT_ADDRESS = os.environ.get('MERCHANT_GAME_CLIENT_ADDRESS', 'http://localhost:4200')
+MERCHANT_GAME_CLIENT_BASE = os.environ.get('MERCHANT_GAME_CLIENT_BASE', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True

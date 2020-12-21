@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from scout.settings import MERCHANT_GAME_CLIENT_ADDRESS
+from scout.settings import MERCHANT_GAME_CLIENT_ADDRESS, MERCHANT_GAME_CLIENT_BASE
 from .exceptions import InvalidRequestException
 from .models import Player, City, GameData, Loan, Transaction, PlayerTransaction, Item, LoanPayback
 from .serializers import (
@@ -337,5 +337,5 @@ def index(request):
     url = reverse('api', request=request)
     return render(request, 'merchant_game/index.html', {
         'server_api_url': url,
-        'client_url': MERCHANT_GAME_CLIENT_ADDRESS,
+        'client_url': "/".join((MERCHANT_GAME_CLIENT_ADDRESS, MERCHANT_GAME_CLIENT_BASE)),
     })
